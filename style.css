@@ -1,0 +1,48 @@
+/* style.css */
+body {
+    background-color: #0E1117;
+    color: #E1E6F0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.css-18e3th9 {
+    max-width: 700px;
+    margin: auto;
+    padding: 2rem;
+    background-color: #1E2237;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.css-1v3fvcr h1 {
+    color: #5C7AEA;
+}
+
+textarea {
+    background-color: #0E1117 !important;
+    color: #E1E6F0 !important;
+    border: 1px solid #5C7AEA !important;
+    border-radius: 6px !important;
+}
+
+div.stButton > button {
+    background-color: #5C7AEA;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+div.stButton > button:hover {
+    background-color: #4058b8;
+    cursor: pointer;
+}
+
+div[role="combobox"] > div {
+    background-color: #0E1117 !important;
+    color: #E1E6F0 !important;
+    border: 1px solid #5C7AEA !important;
+    border-radius: 6px !important;
+}
