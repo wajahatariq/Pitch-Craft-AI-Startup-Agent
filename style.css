@@ -1,39 +1,127 @@
 /* style.css */
 
+/* Base font and background */
 body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f7fa;
     color: #222222;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* Main title style */
+h1, .css-18e3th9 h1 {
     color: #2c3e50;
+    font-weight: 700;
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
 }
 
-.stTextArea > div > textarea {
-    border: 2px solid #3498db;
-    border-radius: 6px;
-    padding: 10px;
-    font-size: 16px;
+/* Subtitle and markdown */
+.css-1v3fvcr p, .css-1v3fvcr span {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #444444;
+}
+
+/* Text input area */
+textarea, .stTextArea>div>textarea {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1.1rem;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d9e6;
+    background-color: #ffffff;
+    transition: border-color 0.3s ease;
 }
 
-.stButton > button {
-    background-color: #3498db;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
-    padding: 8px 18px;
+textarea:focus, .stTextArea>div>textarea:focus {
+    border-color: #4096ff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(64, 150, 255, 0.5);
+}
+
+/* Select box styling */
+.css-1hwfws3 {
+    font-size: 1.1rem;
+    border-radius: 8px !important;
+}
+
+/* Button style */
+.stButton>button {
+    background-color: #4096ff;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1.15rem;
+    border-radius: 8px;
+    padding: 10px 25px;
     transition: background-color 0.3s ease;
-}
-
-.stButton > button:hover {
-    background-color: #2980b9;
+    border: none;
     cursor: pointer;
 }
 
-.stMarkdown h3 {
-    color: #34495e;
+.stButton>button:hover {
+    background-color: #1a73e8;
+}
+
+/* Success message */
+.stAlert.stAlert-success {
+    border-left: 6px solid #4caf50;
+    background-color: #e6f4ea;
+    color: #2e7d32;
     font-weight: 600;
-    margin-top: 20px;
+}
+
+/* Warning message */
+.stAlert.stAlert-warning {
+    border-left: 6px solid #ff9800;
+    background-color: #fff4e5;
+    color: #bf360c;
+    font-weight: 600;
+}
+
+/* Markdown headers in output */
+h3 {
+    color: #34495e;
+    margin-top: 1.2rem;
+    margin-bottom: 0.3rem;
+}
+
+/* Download button */
+.stDownloadButton > button {
+    background-color: #27ae60;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    padding: 10px 25px;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.stDownloadButton > button:hover {
+    background-color: #1e8449;
+}
+
+/* Paragraph spacing in markdown */
+.css-1v3fvcr p {
+    margin-bottom: 0.8rem;
+}
+
+/* Code blocks styling (if any) */
+code {
+    background-color: #f0f0f0;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 0.95rem;
+}
+
+/* Scrollbar for textarea */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background-color: #4096ff;
+    border-radius: 4px;
 }
