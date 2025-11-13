@@ -1,17 +1,10 @@
 import streamlit as st
-import os
 from litellm import completion
 
 # Load CSS from external file
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# ----------- Setup API Key from st.secrets -----------
-if "GROQ_API_KEY" in st.secrets:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-else:
-    st.error("⚠️ GROQ_API_KEY not found in Streamlit secrets.")
 
 # Apply CSS style
 local_css("style.css")
@@ -24,17 +17,16 @@ st.markdown(
     "Generate startup pitches, names, and taglines using **llama-instant** model via LiteLLM."
 )
 
-# ----------- Define helper function to call LLM -----------
-
+# Helper function to call LLM using API key from st.secrets
 def run_completion(prompt: str):
     response = completion(
         model="groq/llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
-        api_key=os.getenv("GROQ_API_KEY"),
+        api_key=st.secrets["GROQ_API_KEY"],
     )
     return response["choices"][0]["message"]["content"].strip()
 
-# ----------- Agents -----------
+# Agents
 
 def idea_agent(idea):
     prompt = f"""
@@ -101,7 +93,7 @@ def report_agent(name, tagline, pitch, audience, brand):
         "brand": brand,
     }
 
-# ----------- Main workflow -----------
+# Main workflow
 
 def run_pitchcraft_workflow(idea, tone):
     idea_summary = idea_agent(idea)
@@ -113,7 +105,7 @@ def run_pitchcraft_workflow(idea, tone):
     brand = brand_agent(first_name, tone)
     return report_agent(first_name, tagline, pitch_text, audience, brand)
 
-# ----------- Streamlit UI -----------
+# Streamlit UI
 
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 
@@ -136,5 +128,3 @@ if st.button("Generate Pitch"):
                 st.markdown(f"**Audience:** {result['audience']}")
                 st.markdown(f"**Pitch:** {result['pitch']}")
                 st.markdown(f"**Brand Direction:** {result['brand']}")
-
-
