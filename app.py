@@ -7,14 +7,18 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from io import BytesIO
 import re
 
-file_name = style.css
+from pathlib import Path
+
+# Get path to style.css in the same directory as app.py
+css_path = Path(__file__).parent / "style.css"
+
 # Load CSS from external file
-def local_css(file_name):
-    with open(file_name) as f:
+def local_css(file_path):
+    with open(file_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # Apply CSS style
-local_css("style.css")
+local_css(css_path)
 
 st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centered")
 
@@ -247,3 +251,4 @@ if st.button("Generate Pitch"):
                     file_name=f"{result['name'].replace(' ', '_')}_pitch.pdf",
                     mime="application/pdf",
                 )
+
