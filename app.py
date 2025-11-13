@@ -23,7 +23,7 @@ st.title("PitchCraft – Your AI Startup Partner")
 
 st.markdown(
     """
-Generate **startup pitches, names, taglines, target audiences, and branding concepts**
+Generate **startup pitches, names, taglines, target audiences, and branding concepts**  
 Enter your startup idea and select a tone to get started.
 """
 )
@@ -63,18 +63,6 @@ Avoid generic words like "AI", "Tech".
 Names only.
 """
     return run_completion(prompt)
-
-def extract_first_name(names_text):
-    # Extracts first startup name from a numbered list format
-    lines = names_text.strip().split('\n')
-    for line in lines:
-        if line.strip().startswith("1."):
-            return line.split('.', 1)[1].strip()
-    # fallback: first non-empty line
-    for line in lines:
-        if line.strip():
-            return line.strip()
-    return "StartupName"
 
 def tagline_agent(name, tone):
     prompt = f"""
@@ -255,48 +243,61 @@ def create_pitch_pdf(data):
     buffer.close()
     return pdf
 
-# --- Main workflow ---
+# --- Workflow split into two parts ---
 
-def run_pitchcraft_workflow(idea, tone):
+def run_name_generation(idea):
     idea_summary = idea_agent(idea)
     names = name_agent(idea_summary)
-    first_name = extract_first_name(names)
-    tagline = tagline_agent(first_name, tone)
+    return idea_summary, names
+
+def run_full_generation(idea_summary, selected_name, tone):
+    tagline = tagline_agent(selected_name, tone)
     pitch_text = pitch_agent(idea_summary, tone)
     audience = audience_agent(idea_summary)
-    brand = brand_agent(first_name, tone)
-    return report_agent(first_name, tagline, pitch_text, audience, brand)
+    brand = brand_agent(selected_name, tone)
+    return report_agent(selected_name, tagline, pitch_text, audience, brand)
 
 # --- Streamlit UI ---
 
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
-
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
-result = None
+if idea.strip():
+    with st.spinner("Generating startup names..."):
+        idea_summary, names = run_name_generation(idea)
 
-if st.button("Generate Pitch"):
-    if not idea.strip():
-        st.warning("Please enter your idea first.")
-    else:
-        with st.spinner("Generating your startup pitch..."):
-            result = run_pitchcraft_workflow(idea, tone)
-            if result:
-                st.success("Pitch Generated!")
-                st.markdown(f"### 🏷 **Name:** {result['name']}")
-                st.markdown(f"**Tagline:** {result['tagline']}")
-                st.markdown(f"**Problem:** {result['problem']}")
-                st.markdown(f"**Solution:** {result['solution']}")
-                st.markdown(f"**Audience:** {result['audience']}")
-                st.markdown(f"**Pitch:** {result['pitch']}")
-                st.markdown(f"**Brand Direction:** {result['brand']}")
+    # Parse names list from LLM output, expecting numbered list "1. Name"
+    name_options = []
+    for line in names.split('\n'):
+        line = line.strip()
+        if line and len(line) > 2 and line[0].isdigit() and line[1] == '.':
+            # Extract name after numbering "1. Name"
+            name = line.split('.', 1)[1].strip()
+            name_options.append(name)
 
-                pdf_bytes = create_pitch_pdf(result)
+    selected_name = st.selectbox("Select a startup name", name_options)
 
-                st.download_button(
-                    label="Download Pitch as PDF",
-                    data=pdf_bytes,
-                    file_name=f"{result['name'].replace(' ', '_')}_pitch.pdf",
-                    mime="application/pdf",
-                )
+    if st.button("Generate Full Pitch and Branding"):
+        with st.spinner("Generating pitch, tagline, audience, and brand..."):
+            result = run_full_generation(idea_summary, selected_name, tone)
 
+        if result:
+            st.success("Pitch Generated!")
+            st.markdown(f"### 🏷 **Name:** {result['name']}")
+            st.markdown(f"**Tagline:** {result['tagline']}")
+            st.markdown(f"**Problem:** {result['problem']}")
+            st.markdown(f"**Solution:** {result['solution']}")
+            st.markdown(f"**Audience:** {result['audience']}")
+            st.markdown(f"**Pitch:** {result['pitch']}")
+            st.markdown(f"**Brand Direction:** {result['brand']}")
+
+            pdf_bytes = create_pitch_pdf(result)
+
+            st.download_button(
+                label="Download Pitch as PDF",
+                data=pdf_bytes,
+                file_name=f"{result['name'].replace(' ', '_')}_pitch.pdf",
+                mime="application/pdf",
+            )
+else:
+    st.info("Please enter your startup idea to generate names.")
