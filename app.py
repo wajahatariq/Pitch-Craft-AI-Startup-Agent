@@ -23,7 +23,7 @@ st.title("PitchCraft – Your AI Startup Partner")
 
 st.markdown(
     """
-Generate **startup pitches, names, taglines, target audiences, and branding concepts** using the llama-instant model via LiteLLM.
+Generate **startup pitches, names, taglines, target audiences, and branding concepts**
 Enter your startup idea and select a tone to get started.
 """
 )
@@ -57,17 +57,10 @@ Startup Idea:
 
 def name_agent(summary):
     prompt = f"""
-You are a creative brand consultant.
-
-Based on the following startup summary, generate exactly **3 unique, memorable, and brandable startup names** that are:
-- Short (one or two words)
-- Avoid generic terms like "AI", "Tech", or "Solutions"
-- Suitable for a modern startup
-
-Provide the names as a numbered list.
-
-Startup Summary:
-{summary}
+Generate exactly 3 unique startup names as a numbered list ONLY.  
+Do NOT include any explanations, descriptions, or pronunciation guides.
+Avoid generic words like "AI", "Tech".
+Names only.
 """
     return run_completion(prompt)
 
@@ -306,3 +299,4 @@ if st.button("Generate Pitch"):
                     file_name=f"{result['name'].replace(' ', '_')}_pitch.pdf",
                     mime="application/pdf",
                 )
+
