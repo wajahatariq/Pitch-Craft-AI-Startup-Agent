@@ -28,7 +28,7 @@ st.markdown(
 
 def run_completion(prompt: str):
     response = completion(
-        model="llama-instant",
+        model="groq/llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
         api_key=os.getenv("GROQ_API_KEY"),
     )
@@ -136,4 +136,5 @@ if st.button("Generate Pitch"):
                 st.markdown(f"**Audience:** {result['audience']}")
                 st.markdown(f"**Pitch:** {result['pitch']}")
                 st.markdown(f"**Brand Direction:** {result['brand']}")
+
 
