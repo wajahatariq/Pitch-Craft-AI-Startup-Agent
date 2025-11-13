@@ -7,6 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from io import BytesIO
 import re
 
+file_name = style.css
 # Load CSS from external file
 def local_css(file_name):
     with open(file_name) as f:
@@ -51,6 +52,16 @@ Avoid generic terms like "AI" or "Tech".
 Idea Summary: {summary}
 """
     return run_completion(prompt)
+
+def extract_first_name(names_text):
+    lines = names_text.strip().split('\n')
+    for line in lines:
+        if line.strip().startswith("1."):
+            return line.split('.', 1)[1].strip()
+    for line in lines:
+        if line.strip():
+            return line.strip()
+    return "StartupName"
 
 def tagline_agent(name, tone):
     prompt = f"""
@@ -123,8 +134,8 @@ def create_pitch_pdf(data):
     styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
     styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=20))
     styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
-    styles.add(ParagraphStyle(name='Bullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
-    styles.add(ParagraphStyle(name='IndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
+    styles.add(ParagraphStyle(name='CustomBullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
+    styles.add(ParagraphStyle(name='CustomIndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
 
     story = []
 
@@ -150,11 +161,11 @@ def create_pitch_pdf(data):
         if line.startswith("•") or line.startswith("-"):
             # Top-level bullet
             text = clean_markdown(line[1:].strip())
-            story.append(Paragraph(text, styles['Bullet'], bulletText="•"))
+            story.append(Paragraph(text, styles['CustomBullet'], bulletText="•"))
         elif line.startswith("+"):
             # Indented bullet
             text = clean_markdown(line[1:].strip())
-            story.append(Paragraph(text, styles['IndentedBullet'], bulletText="–"))
+            story.append(Paragraph(text, styles['CustomIndentedBullet'], bulletText="–"))
         else:
             # Normal text
             story.append(Paragraph(clean_markdown(line), styles['Body']))
@@ -195,7 +206,7 @@ def create_pitch_pdf(data):
 def run_pitchcraft_workflow(idea, tone):
     idea_summary = idea_agent(idea)
     names = name_agent(idea_summary)
-    first_name = names.split("\n")[0].strip() if names else "StartupName"
+    first_name = extract_first_name(names)
     tagline = tagline_agent(first_name, tone)
     pitch_text = pitch_agent(idea_summary, tone)
     audience = audience_agent(idea_summary)
