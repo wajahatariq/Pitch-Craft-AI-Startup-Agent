@@ -3,9 +3,9 @@ from litellm import completion
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
-from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from io import BytesIO
+import re
 
 # Load CSS from external file
 def local_css(file_name):
@@ -99,46 +99,92 @@ def report_agent(name, tagline, pitch, audience, brand):
         "brand": brand,
     }
 
-# PDF generation using ReportLab
+# --- Improved PDF generation ---
+
+def clean_markdown(text):
+    # Remove basic markdown characters for PDF clarity
+    replacements = [
+        ("**", ""),
+        ("*", ""),
+        ("+", ""),
+        ("\u2022", ""),  # bullet char if any
+    ]
+    for old, new in replacements:
+        text = text.replace(old, new)
+    return text.strip()
+
 def create_pitch_pdf(data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
                             rightMargin=72, leftMargin=72,
                             topMargin=72, bottomMargin=72)
-    
+
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
     styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=20))
     styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
-    
+    styles.add(ParagraphStyle(name='Bullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
+    styles.add(ParagraphStyle(name='IndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
+
     story = []
-    
+
     # Title and Tagline
     story.append(Paragraph(data['name'], styles['TitleCenter']))
     story.append(Paragraph(data['tagline'], styles['Heading']))
-    
+
     # Problem and Solution
     story.append(Paragraph("Problem", styles['Heading']))
     story.append(Paragraph(data['problem'], styles['Body']))
-    
+
     story.append(Paragraph("Solution", styles['Heading']))
     story.append(Paragraph(data['solution'], styles['Body']))
-    
-    # Audience
+
+    # Audience - parse bullet points properly
     story.append(Paragraph("Target Audience & Pain Points", styles['Heading']))
     audience_lines = data['audience'].strip().split('\n')
+
     for line in audience_lines:
-        if line.strip():
-            story.append(Paragraph(f"• {line.strip()}", styles['Body']))
-    
-    # Full Pitch
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("•") or line.startswith("-"):
+            # Top-level bullet
+            text = clean_markdown(line[1:].strip())
+            story.append(Paragraph(text, styles['Bullet'], bulletText="•"))
+        elif line.startswith("+"):
+            # Indented bullet
+            text = clean_markdown(line[1:].strip())
+            story.append(Paragraph(text, styles['IndentedBullet'], bulletText="–"))
+        else:
+            # Normal text
+            story.append(Paragraph(clean_markdown(line), styles['Body']))
+
+    # Elevator Pitch
     story.append(Paragraph("Elevator Pitch", styles['Heading']))
     story.append(Paragraph(data['pitch'], styles['Body']))
-    
-    # Brand Direction
+
+    # Brand Direction - split by options and add subtitles
     story.append(Paragraph("Brand Direction", styles['Heading']))
-    story.append(Paragraph(data['brand'], styles['Body']))
-    
+    brand_text = data['brand']
+
+    # Split by **Option X:** pattern
+    options = re.split(r"\*\*Option \d+: Startup Name - [^\*]+\*\*", brand_text)
+    titles = re.findall(r"\*\*Option \d+: Startup Name - ([^\*]+)\*\*", brand_text)
+
+    if options and options[0].strip() == "":
+        options = options[1:]
+
+    for i, option_text in enumerate(options):
+        title = titles[i] if i < len(titles) else f"Option {i+1}"
+        story.append(Paragraph(f"Option {i+1}: {title}", styles['Heading']))
+
+        option_text_clean = clean_markdown(option_text)
+        for line in option_text_clean.strip().split('\n'):
+            line = line.strip()
+            if line:
+                story.append(Paragraph(line, styles['Body']))
+        story.append(Spacer(1, 12))
+
     doc.build(story)
     pdf = buffer.getvalue()
     buffer.close()
@@ -179,11 +225,11 @@ if st.button("Generate Pitch"):
                 st.markdown(f"**Audience:** {result['audience']}")
                 st.markdown(f"**Pitch:** {result['pitch']}")
                 st.markdown(f"**Brand Direction:** {result['brand']}")
-                
+
                 # Generate PDF bytes
                 pdf_bytes = create_pitch_pdf(result)
-                
-                # Streamlit download button
+
+                # Download button
                 st.download_button(
                     label="Download Pitch as PDF",
                     data=pdf_bytes,
