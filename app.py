@@ -18,7 +18,7 @@ local_css("style.css")
 
 st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centered")
 
-st.title("🚀 PitchCraft – Your AI Startup Partner")
+st.title("PitchCraft – Your AI Startup Partner")
 
 st.markdown(
     "Generate startup pitches, names, and taglines using **llama-instant** model via LiteLLM."
@@ -115,7 +115,7 @@ def run_pitchcraft_workflow(idea, tone):
 
 # ----------- Streamlit UI -----------
 
-idea = st.text_area("💡 Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
+idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
@@ -136,3 +136,4 @@ if st.button("Generate Pitch"):
                 st.markdown(f"**Audience:** {result['audience']}")
                 st.markdown(f"**Pitch:** {result['pitch']}")
                 st.markdown(f"**Brand Direction:** {result['brand']}")
+
