@@ -1,5 +1,11 @@
 import streamlit as st
 from litellm import completion
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from io import BytesIO
 
 # Load CSS from external file
 def local_css(file_name):
@@ -93,6 +99,51 @@ def report_agent(name, tagline, pitch, audience, brand):
         "brand": brand,
     }
 
+# PDF generation using ReportLab
+def create_pitch_pdf(data):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=72, leftMargin=72,
+                            topMargin=72, bottomMargin=72)
+    
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
+    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=20))
+    styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
+    
+    story = []
+    
+    # Title and Tagline
+    story.append(Paragraph(data['name'], styles['TitleCenter']))
+    story.append(Paragraph(data['tagline'], styles['Heading']))
+    
+    # Problem and Solution
+    story.append(Paragraph("Problem", styles['Heading']))
+    story.append(Paragraph(data['problem'], styles['Body']))
+    
+    story.append(Paragraph("Solution", styles['Heading']))
+    story.append(Paragraph(data['solution'], styles['Body']))
+    
+    # Audience
+    story.append(Paragraph("Target Audience & Pain Points", styles['Heading']))
+    audience_lines = data['audience'].strip().split('\n')
+    for line in audience_lines:
+        if line.strip():
+            story.append(Paragraph(f"• {line.strip()}", styles['Body']))
+    
+    # Full Pitch
+    story.append(Paragraph("Elevator Pitch", styles['Heading']))
+    story.append(Paragraph(data['pitch'], styles['Body']))
+    
+    # Brand Direction
+    story.append(Paragraph("Brand Direction", styles['Heading']))
+    story.append(Paragraph(data['brand'], styles['Body']))
+    
+    doc.build(story)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+
 # Main workflow
 
 def run_pitchcraft_workflow(idea, tone):
@@ -128,3 +179,14 @@ if st.button("Generate Pitch"):
                 st.markdown(f"**Audience:** {result['audience']}")
                 st.markdown(f"**Pitch:** {result['pitch']}")
                 st.markdown(f"**Brand Direction:** {result['brand']}")
+                
+                # Generate PDF bytes
+                pdf_bytes = create_pitch_pdf(result)
+                
+                # Streamlit download button
+                st.download_button(
+                    label="Download Pitch as PDF",
+                    data=pdf_bytes,
+                    file_name=f"{result['name'].replace(' ', '_')}_pitch.pdf",
+                    mime="application/pdf",
+                )
