@@ -5,19 +5,16 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from io import BytesIO
+from pathlib import Path
 import re
 
-from pathlib import Path
-
-# Get path to style.css in the same directory as app.py
+# Load CSS from external file in the same directory as app.py
 css_path = Path(__file__).parent / "style.css"
 
-# Load CSS from external file
 def local_css(file_path):
     with open(file_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Apply CSS style
 local_css(css_path)
 
 st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centered")
@@ -25,10 +22,14 @@ st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centere
 st.title("PitchCraft – Your AI Startup Partner")
 
 st.markdown(
-    "Generate startup pitches, names, and taglines using **llama-instant** model via LiteLLM."
+    """
+Generate **startup pitches, names, taglines, target audiences, and branding concepts** using the llama-instant model via LiteLLM.
+Enter your startup idea and select a tone to get started.
+"""
 )
 
-# Helper function to call LLM using API key from st.secrets
+# --- LLM interaction helper ---
+
 def run_completion(prompt: str):
     response = completion(
         model="groq/llama-3.1-8b-instant",
@@ -37,31 +38,46 @@ def run_completion(prompt: str):
     )
     return response["choices"][0]["message"]["content"].strip()
 
-# Agents
+# --- Detailed prompts for each agent ---
 
 def idea_agent(idea):
     prompt = f"""
-You are an expert startup strategist.
-Summarize this idea in 2-3 lines, identifying the main problem and what it aims to solve.
+You are a seasoned startup strategist. Analyze this startup idea carefully.
 
-Idea: {idea}
+Provide a concise summary (2-3 sentences) that clearly identifies:
+- The main problem the startup addresses
+- The core solution it offers
+
+Make the summary compelling and insightful.
+
+Startup Idea:
+{idea}
 """
     return run_completion(prompt)
 
 def name_agent(summary):
     prompt = f"""
-Based on this startup idea summary, generate 3 unique, short, and brandable startup names.
-Avoid generic terms like "AI" or "Tech".
+You are a creative brand consultant.
 
-Idea Summary: {summary}
+Based on the following startup summary, generate exactly **3 unique, memorable, and brandable startup names** that are:
+- Short (one or two words)
+- Avoid generic terms like "AI", "Tech", or "Solutions"
+- Suitable for a modern startup
+
+Provide the names as a numbered list.
+
+Startup Summary:
+{summary}
 """
     return run_completion(prompt)
 
 def extract_first_name(names_text):
+    # Extracts first startup name from a numbered list format
     lines = names_text.strip().split('\n')
     for line in lines:
         if line.strip().startswith("1."):
             return line.split('.', 1)[1].strip()
+    # fallback: first non-empty line
     for line in lines:
         if line.strip():
             return line.strip()
@@ -69,41 +85,79 @@ def extract_first_name(names_text):
 
 def tagline_agent(name, tone):
     prompt = f"""
-You are a creative copywriter. Generate a catchy tagline for this startup.
-Tone: {tone}
-Startup Name: {name}
-Output only the tagline.
+You are an expert copywriter.
+
+Create a catchy and memorable tagline for this startup name.
+
+Requirements:
+- Reflect the startup's core value and vision
+- Use the tone: {tone} (e.g., Formal, Casual, Fun, Investor)
+- Keep it short (under 10 words)
+- Output only the tagline text (no explanations)
+
+Startup Name:
+{name}
 """
     return run_completion(prompt)
 
 def pitch_agent(summary, tone):
     prompt = f"""
-Write a 2-paragraph elevator pitch for this startup idea.
-Include a clear problem and solution.
-Tone: {tone}
-Idea: {summary}
+You are a skilled marketer.
+
+Write a compelling **two-paragraph elevator pitch** for this startup.
+
+Include:
+- A clear statement of the problem and its impact
+- A description of the solution and unique value proposition
+- Use the tone: {tone}
+
+Startup Summary:
+{summary}
 """
     return run_completion(prompt)
 
 def audience_agent(summary):
     prompt = f"""
-Define the target audience and pain points for this startup idea.
-Write in bullet points.
-Idea: {summary}
+You are a market analyst.
+
+Define the target audience and their pain points for this startup.
+
+Format your answer as bullet points grouped under:
+- Primary Target Audience
+- Secondary Target Audience
+- Pain Points
+
+Use clear and concise language.
+
+Startup Summary:
+{summary}
 """
     return run_completion(prompt)
 
 def brand_agent(name, tone):
     prompt = f"""
-Suggest a color palette and logo concept idea for this startup.
-Name: {name}
-Tone: {tone}
+You are a branding expert.
+
+Suggest a professional color palette (with hex codes) and a simple but effective logo concept idea for this startup.
+
+Consider the startup name: {name} and the tone: {tone}.
+
+Describe:
+- Primary and secondary colors
+- Logo style and symbolism
+
+Output your response in clear paragraphs.
 """
     return run_completion(prompt)
 
 def report_agent(name, tagline, pitch, audience, brand):
-    problem = pitch.split(".")[0] if "." in pitch else pitch
-    solution = pitch.split(".")[1] if "." in pitch else ""
+    # Split pitch into problem and solution if possible
+    if "." in pitch:
+        problem = pitch.split(".", 1)[0] + "."
+        solution = pitch.split(".", 1)[1].strip()
+    else:
+        problem = pitch
+        solution = ""
     return {
         "name": name,
         "tagline": tagline,
@@ -114,15 +168,16 @@ def report_agent(name, tagline, pitch, audience, brand):
         "brand": brand,
     }
 
-# --- Improved PDF generation ---
+# --- PDF generation ---
 
 def clean_markdown(text):
-    # Remove basic markdown characters for PDF clarity
+    # Basic cleanup to remove markdown characters for PDF clarity
     replacements = [
         ("**", ""),
         ("*", ""),
         ("+", ""),
-        ("\u2022", ""),  # bullet char if any
+        ("\u2022", ""),
+        ("\n\n", "\n"),
     ]
     for old, new in replacements:
         text = text.replace(old, new)
@@ -135,8 +190,8 @@ def create_pitch_pdf(data):
                             topMargin=72, bottomMargin=72)
 
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20))
-    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=20))
+    styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20, spaceBefore=10))
+    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=15))
     styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
     styles.add(ParagraphStyle(name='CustomBullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
     styles.add(ParagraphStyle(name='CustomIndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
@@ -146,15 +201,18 @@ def create_pitch_pdf(data):
     # Title and Tagline
     story.append(Paragraph(data['name'], styles['TitleCenter']))
     story.append(Paragraph(data['tagline'], styles['Heading']))
+    story.append(Spacer(1, 12))
 
     # Problem and Solution
     story.append(Paragraph("Problem", styles['Heading']))
     story.append(Paragraph(data['problem'], styles['Body']))
+    story.append(Spacer(1, 12))
 
     story.append(Paragraph("Solution", styles['Heading']))
     story.append(Paragraph(data['solution'], styles['Body']))
+    story.append(Spacer(1, 12))
 
-    # Audience - parse bullet points properly
+    # Audience - bullet points
     story.append(Paragraph("Target Audience & Pain Points", styles['Heading']))
     audience_lines = data['audience'].strip().split('\n')
 
@@ -163,29 +221,28 @@ def create_pitch_pdf(data):
         if not line:
             continue
         if line.startswith("•") or line.startswith("-"):
-            # Top-level bullet
             text = clean_markdown(line[1:].strip())
             story.append(Paragraph(text, styles['CustomBullet'], bulletText="•"))
         elif line.startswith("+"):
-            # Indented bullet
             text = clean_markdown(line[1:].strip())
             story.append(Paragraph(text, styles['CustomIndentedBullet'], bulletText="–"))
         else:
-            # Normal text
             story.append(Paragraph(clean_markdown(line), styles['Body']))
+    story.append(Spacer(1, 12))
 
     # Elevator Pitch
     story.append(Paragraph("Elevator Pitch", styles['Heading']))
     story.append(Paragraph(data['pitch'], styles['Body']))
+    story.append(Spacer(1, 12))
 
-    # Brand Direction - split by options and add subtitles
+    # Brand Direction with options parsing
     story.append(Paragraph("Brand Direction", styles['Heading']))
     brand_text = data['brand']
 
-    # Split by **Option X:** pattern
     options = re.split(r"\*\*Option \d+: Startup Name - [^\*]+\*\*", brand_text)
     titles = re.findall(r"\*\*Option \d+: Startup Name - ([^\*]+)\*\*", brand_text)
 
+    # Clean empty leading split
     if options and options[0].strip() == "":
         options = options[1:]
 
@@ -205,7 +262,7 @@ def create_pitch_pdf(data):
     buffer.close()
     return pdf
 
-# Main workflow
+# --- Main workflow ---
 
 def run_pitchcraft_workflow(idea, tone):
     idea_summary = idea_agent(idea)
@@ -217,7 +274,7 @@ def run_pitchcraft_workflow(idea, tone):
     brand = brand_agent(first_name, tone)
     return report_agent(first_name, tagline, pitch_text, audience, brand)
 
-# Streamlit UI
+# --- Streamlit UI ---
 
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 
@@ -241,14 +298,11 @@ if st.button("Generate Pitch"):
                 st.markdown(f"**Pitch:** {result['pitch']}")
                 st.markdown(f"**Brand Direction:** {result['brand']}")
 
-                # Generate PDF bytes
                 pdf_bytes = create_pitch_pdf(result)
 
-                # Download button
                 st.download_button(
                     label="Download Pitch as PDF",
                     data=pdf_bytes,
                     file_name=f"{result['name'].replace(' ', '_')}_pitch.pdf",
                     mime="application/pdf",
                 )
-
