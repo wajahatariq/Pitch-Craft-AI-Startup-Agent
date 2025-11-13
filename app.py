@@ -2,10 +2,13 @@ import streamlit as st
 from graph.workflow import run_pitchcraft_workflow
 from utils.export_pdf import export_to_pdf
 from utils.storage import save_pitch
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# Set your API key from Streamlit secrets
+if "GROQ_API_KEY" in st.secrets:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+else:
+    st.error("⚠️ GROQ_API_KEY not found in Streamlit secrets.")
 
 st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centered")
 
@@ -16,6 +19,8 @@ st.markdown("Generate startup pitches, names, and taglines using Groq + LangGrap
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
+
+result = None
 
 if st.button("Generate Pitch"):
     if not idea.strip():
@@ -35,6 +40,8 @@ if st.button("Generate Pitch"):
 
                 save_pitch(result)
 
-                if st.button("Export as PDF"):
-                    export_to_pdf(result)
-                    st.success("PDF saved as 'pitch_output.pdf'")
+# Show Export button only if there is a generated pitch
+if result:
+    if st.button("Export as PDF"):
+        export_to_pdf(result)
+        st.success("PDF saved as 'pitch_output.pdf'")
