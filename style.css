@@ -1,127 +1,77 @@
-/* style.css */
-
-/* Base font and background */
+/* General page background and font */
 body {
+    background-color: #f9fafb;
+    color: #111827;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f7fa;
-    color: #222222;
 }
 
-/* Main title style */
-h1, .css-18e3th9 h1 {
-    color: #2c3e50;
+/* Title styling */
+h1, h2, h3, h4, h5, h6 {
+    color: #111827;
     font-weight: 700;
-    font-size: 2.8rem;
-    margin-bottom: 0.5rem;
 }
 
-/* Subtitle and markdown */
-.css-1v3fvcr p, .css-1v3fvcr span {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    color: #444444;
+/* Streamlit main container */
+.css-1d391kg {
+    max-width: 900px;
+    margin: auto;
 }
 
-/* Text input area */
-textarea, .stTextArea>div>textarea {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1.1rem;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1.5px solid #d1d9e6;
-    background-color: #ffffff;
-    transition: border-color 0.3s ease;
+/* Text area styling */
+textarea {
+    font-size: 16px !important;
+    padding: 10px !important;
+    border-radius: 6px !important;
+    border: 1px solid #d1d5db !important;
 }
 
-textarea:focus, .stTextArea>div>textarea:focus {
-    border-color: #4096ff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(64, 150, 255, 0.5);
-}
-
-/* Select box styling */
-.css-1hwfws3 {
-    font-size: 1.1rem;
-    border-radius: 8px !important;
-}
-
-/* Button style */
-.stButton>button {
-    background-color: #4096ff;
-    color: #ffffff;
+/* Buttons */
+.stButton > button {
+    background-color: #2563eb;
+    color: white;
+    border-radius: 6px;
+    padding: 10px 20px;
     font-weight: 600;
-    font-size: 1.15rem;
-    border-radius: 8px;
-    padding: 10px 25px;
     transition: background-color 0.3s ease;
     border: none;
-    cursor: pointer;
 }
 
-.stButton>button:hover {
-    background-color: #1a73e8;
+.stButton > button:hover {
+    background-color: #1e40af;
 }
 
-/* Success message */
-.stAlert.stAlert-success {
-    border-left: 6px solid #4caf50;
-    background-color: #e6f4ea;
-    color: #2e7d32;
-    font-weight: 600;
+/* Checkboxes label */
+.stCheckbox > div label {
+    font-size: 16px;
+    font-weight: 500;
 }
 
-/* Warning message */
-.stAlert.stAlert-warning {
-    border-left: 6px solid #ff9800;
-    background-color: #fff4e5;
-    color: #bf360c;
-    font-weight: 600;
+/* Markdown sections */
+.markdown-text-container {
+    margin-bottom: 20px;
 }
 
-/* Markdown headers in output */
-h3 {
-    color: #34495e;
-    margin-top: 1.2rem;
-    margin-bottom: 0.3rem;
+/* Code blocks inside expanders */
+.stCodeBlock {
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    padding: 10px !important;
+    font-size: 14px !important;
+    font-family: 'Source Code Pro', monospace, monospace;
+    overflow-x: auto;
 }
 
 /* Download button */
 .stDownloadButton > button {
-    background-color: #27ae60;
-    border-radius: 8px;
+    background-color: #10b981;
     color: white;
+    border-radius: 6px;
+    padding: 10px 20px;
     font-weight: 600;
-    padding: 10px 25px;
-    font-size: 1.1rem;
     border: none;
-    cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .stDownloadButton > button:hover {
-    background-color: #1e8449;
-}
-
-/* Paragraph spacing in markdown */
-.css-1v3fvcr p {
-    margin-bottom: 0.8rem;
-}
-
-/* Code blocks styling (if any) */
-code {
-    background-color: #f0f0f0;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-family: Consolas, monospace;
-    font-size: 0.95rem;
-}
-
-/* Scrollbar for textarea */
-textarea::-webkit-scrollbar {
-    width: 8px;
-}
-
-textarea::-webkit-scrollbar-thumb {
-    background-color: #4096ff;
-    border-radius: 4px;
+    background-color: #047857;
 }
