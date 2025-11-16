@@ -75,3 +75,42 @@ textarea {
 .stDownloadButton > button:hover {
     background-color: #047857;
 }
+
+.ag-theme-dark {
+    --ag-background-color: #000000 !important;
+    --ag-foreground-color: #ffffff !important;
+    --ag-header-background-color: #111111 !important;
+    --ag-odd-row-background-color: #111111 !important;
+    --ag-even-row-background-color: #000000 !important;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.ag-theme-dark .ag-root-wrapper {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.ag-theme-dark .ag-header {
+    background-color: #111111 !important;
+    color: #ffffff !important;
+}
+
+.ag-theme-dark .ag-row {
+    color: #ffffff !important;
+}
+
+.ag-theme-dark .ag-cell {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* Scrollbar styling */
+.ag-theme-dark .ag-body-viewport::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ag-theme-dark .ag-body-viewport::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 4px;
+}
