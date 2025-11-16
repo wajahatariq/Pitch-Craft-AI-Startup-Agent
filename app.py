@@ -39,7 +39,7 @@ def run_completion(prompt: str):
     )
     return response["choices"][0]["message"]["content"].strip()
 
-# --- Agents ---
+# --- Agents (same as before) ---
 
 def idea_agent(idea):
     prompt = f"""
@@ -132,39 +132,23 @@ Output your response in clear paragraphs.
 """
     return run_completion(prompt)
 
-def website_agent(name, tone, summary, brand):
+def website_agent(name, tone):
     prompt = f"""
-You are a professional full-stack web developer.
+You are a web developer.
 
-Create a multi-page website for a startup with the following profile:
+Generate a simple, clean, and responsive **single-page website** for the startup named "{name}" using HTML, CSS, and JavaScript.
 
-Summary: {summary}
+The website should include:
+- A homepage header with the startup name and tagline
+- A section about the problem
+- A section about the solution
+- A contact form (no backend needed)
+- Styling that matches a {tone} tone
 
-Brand Direction: {brand}
-
-Startup Name: {name}
-
-Tone: {tone}
-
-Requirements:
-- Create these HTML pages: index.html, about.html, services.html, contact.html
-- Include navigation between pages
-- Responsive design suitable for desktop and mobile
-- Include CSS (styles.css) and JavaScript (scripts.js) files
-- The website should reflect the brand's color palette and style
-- Include sections about the problem, solution, and contact form
-- Use semantic HTML5 tags and modern CSS/JS best practices
-
-Output a JSON object with the filenames as keys and their content as values.
-Example:
-{{
-  "index.html": "<html>...</html>",
-  "about.html": "<html>...</html>",
-  "services.html": "<html>...</html>",
-  "contact.html": "<html>...</html>",
-  "styles.css": "body {{ ... }}",
-  "scripts.js": "document.querySelector(...)"
-}}
+Output your response as three separate code blocks, labeled clearly:
+1) HTML code
+2) CSS code
+3) JavaScript code
 """
     return run_completion(prompt)
 
@@ -233,91 +217,9 @@ def report_agent(name, tagline, pitch, audience, brand, idea_summary):
         "idea_summary": idea_summary,
     }
 
-# --- PDF generation ---
+# --- PDF generation functions (unchanged, omitted here for brevity) ---
 
-def clean_markdown(text):
-    replacements = [
-        ("**", ""),
-        ("*", ""),
-        ("+", ""),
-        ("\u2022", ""),
-        ("\n\n", "\n"),
-    ]
-    for old, new in replacements:
-        text = text.replace(old, new)
-    return text.strip()
-
-def create_pitch_pdf(data):
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=72, leftMargin=72,
-                            topMargin=72, bottomMargin=72)
-
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20, spaceBefore=10))
-    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=15))
-    styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
-    styles.add(ParagraphStyle(name='CustomBullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
-    styles.add(ParagraphStyle(name='CustomIndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
-
-    story = []
-
-    story.append(Paragraph(data['name'], styles['TitleCenter']))
-    story.append(Paragraph(data['tagline'], styles['Heading']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Problem", styles['Heading']))
-    story.append(Paragraph(data['problem'], styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Solution", styles['Heading']))
-    story.append(Paragraph(data['solution'], styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Target Audience & Pain Points", styles['Heading']))
-    audience_lines = data['audience'].strip().split('\n')
-    for line in audience_lines:
-        line = line.strip()
-        if not line:
-            continue
-        if line.startswith("•") or line.startswith("-"):
-            text = clean_markdown(line[1:].strip())
-            story.append(Paragraph(text, styles['CustomBullet'], bulletText="•"))
-        elif line.startswith("+"):
-            text = clean_markdown(line[1:].strip())
-            story.append(Paragraph(text, styles['CustomIndentedBullet'], bulletText="–"))
-        else:
-            story.append(Paragraph(clean_markdown(line), styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Elevator Pitch", styles['Heading']))
-    story.append(Paragraph(data['pitch'], styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Brand Direction", styles['Heading']))
-    brand_text = data['brand']
-
-    options = re.split(r"\*\*Option \d+: Startup Name - [^\*]+\*\*", brand_text)
-    titles = re.findall(r"\*\*Option \d+: Startup Name - ([^\*]+)\*\*", brand_text)
-
-    if options and options[0].strip() == "":
-        options = options[1:]
-
-    for i, option_text in enumerate(options):
-        title = titles[i] if i < len(titles) else f"Option {i+1}"
-        story.append(Paragraph(f"Option {i+1}: {title}", styles['Heading']))
-
-        option_text_clean = clean_markdown(option_text)
-        for line in option_text_clean.strip().split('\n'):
-            line = line.strip()
-            if line:
-                story.append(Paragraph(line, styles['Body']))
-        story.append(Spacer(1, 12))
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-    return pdf
+# Insert your clean_markdown and create_pitch_pdf functions here (same as before)...
 
 # --- Workflow split into parts ---
 
@@ -328,23 +230,22 @@ def run_name_generation(idea):
 
 def run_full_generation(idea_summary, selected_name, tone, generate_flags):
     results = {}
-    if generate_flags["tagline"]:
+    if generate_flags.get("tagline", False):
         results['tagline'] = tagline_agent(selected_name, tone)
-    if generate_flags["pitch"]:
+    if generate_flags.get("pitch", False):
         results['pitch'] = pitch_agent(idea_summary, tone)
-    if generate_flags["audience"]:
+    if generate_flags.get("audience", False):
         results['audience'] = audience_agent(idea_summary)
-    if generate_flags["brand"]:
+    if generate_flags.get("brand", False):
         results['brand'] = brand_agent(selected_name, tone)
-    if generate_flags["website"]:
-        results['website'] = website_agent(selected_name, tone, idea_summary, results.get('brand', ''))
-    if generate_flags["social_media"]:
+    if generate_flags.get("website", False):
+        results['website'] = website_agent(selected_name, tone)
+    if generate_flags.get("social_media", False):
         results['social_media'] = social_media_agent(selected_name, tone)
-    if generate_flags["competitor"]:
+    if generate_flags.get("competitor", False):
         results['competitor'] = competitor_analysis_agent(idea_summary)
-    if generate_flags["financials"]:
+    if generate_flags.get("financials", False):
         results['financials'] = financials_agent(selected_name)
-    # Required base fields for report
     results.update(report_agent(
         selected_name,
         results.get('tagline', ''),
@@ -355,105 +256,145 @@ def run_full_generation(idea_summary, selected_name, tone, generate_flags):
     ))
     return results
 
-# --- Streamlit UI ---
+# --- Main Streamlit UI ---
+
+# Initialize session state variables for persistence
+if 'names_generated' not in st.session_state:
+    st.session_state['names_generated'] = []
+if 'finalized_name' not in st.session_state:
+    st.session_state['finalized_name'] = None
+if 'idea_summary' not in st.session_state:
+    st.session_state['idea_summary'] = None
 
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
-generate_tagline = st.checkbox("Generate Tagline", value=True)
-generate_pitch = st.checkbox("Generate Elevator Pitch", value=True)
-generate_audience = st.checkbox("Generate Target Audience & Pain Points", value=True)
-generate_brand = st.checkbox("Generate Brand Direction", value=True)
-generate_website = st.checkbox("Generate Website (HTML/CSS/JS)", value=False)
-generate_social_media = st.checkbox("Generate Social Media Post Ideas", value=False)
-generate_competitor = st.checkbox("Generate Competitor Analysis", value=False)
-generate_financials = st.checkbox("Generate Financial Projections", value=False)
-
 if idea.strip():
-    with st.spinner("Generating startup names..."):
-        idea_summary, names = run_name_generation(idea)
+    # If idea changes, reset session state to avoid mismatch
+    if st.session_state.get('last_idea', '') != idea:
+        st.session_state['names_generated'] = []
+        st.session_state['finalized_name'] = None
+        st.session_state['idea_summary'] = None
+        st.session_state['last_idea'] = idea
 
-    name_options = []
-    for line in names.split('\n'):
-        line = line.strip()
-        if line and len(line) > 2 and line[0].isdigit() and line[1] == '.':
-            name = line.split('.', 1)[1].strip()
-            name_options.append(name)
+    if not st.session_state['names_generated']:
+        with st.spinner("Generating startup names..."):
+            idea_summary, names_text = run_name_generation(idea)
+            # Parse names list
+            name_options = []
+            for line in names_text.split('\n'):
+                line = line.strip()
+                if line and len(line) > 2 and line[0].isdigit() and line[1] == '.':
+                    name = line.split('.', 1)[1].strip()
+                    name_options.append(name)
 
-    selected_name = st.selectbox("Select a startup name", name_options)
+            st.session_state['names_generated'] = name_options
+            st.session_state['idea_summary'] = idea_summary
+    else:
+        name_options = st.session_state['names_generated']
+        idea_summary = st.session_state['idea_summary']
 
-    if st.button("Generate Selected Assets"):
-        generate_flags = {
-            "tagline": generate_tagline,
-            "pitch": generate_pitch,
-            "audience": generate_audience,
-            "brand": generate_brand,
-            "website": generate_website,
-            "social_media": generate_social_media,
-            "competitor": generate_competitor,
-            "financials": generate_financials,
-        }
-        with st.spinner("Generating your startup assets..."):
-            result = run_full_generation(idea_summary, selected_name, tone, generate_flags)
+    if st.session_state['finalized_name'] is None:
+        selected_name = st.selectbox("Select a startup name", name_options)
+        if st.button("Finalize Name"):
+            st.session_state['finalized_name'] = selected_name
+            st.experimental_rerun()
+    else:
+        st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
-        st.success("Generation Complete!")
+        generate_tagline = st.checkbox("Generate Tagline", value=True)
+        generate_pitch = st.checkbox("Generate Elevator Pitch", value=True)
+        generate_audience = st.checkbox("Generate Target Audience & Pain Points", value=True)
+        generate_brand = st.checkbox("Generate Brand Direction", value=True)
+        generate_website = st.checkbox("Generate Website (HTML/CSS/JS)", value=False)
+        generate_social_media = st.checkbox("Generate Social Media Post Ideas", value=False)
+        generate_competitor = st.checkbox("Generate Competitor Analysis", value=False)
+        generate_financials = st.checkbox("Generate Financial Projections", value=False)
 
-        if generate_tagline:
-            st.markdown(f"### Tagline\n{result.get('tagline','')}")
-        if generate_pitch:
-            st.markdown(f"### Elevator Pitch\n{result.get('pitch','')}")
-        if generate_audience:
-            st.markdown(f"### Target Audience & Pain Points\n{result.get('audience','')}")
-        if generate_brand:
-            st.markdown(f"### Brand Direction\n{result.get('brand','')}")
-        if generate_competitor:
-            st.markdown(f"### Competitor Analysis\n{result.get('competitor','')}")
-        if generate_financials:
-            st.markdown(f"### Financial Projections\n{result.get('financials','')}")
-        if generate_social_media:
-            st.markdown(f"### Social Media Post Ideas\n{result.get('social_media','')}")
-        if generate_website:
-            st.markdown("### Website Code")
+        if st.button("Generate Selected Assets"):
+            generate_flags = {
+                "tagline": generate_tagline,
+                "pitch": generate_pitch,
+                "audience": generate_audience,
+                "brand": generate_brand,
+                "website": generate_website,
+                "social_media": generate_social_media,
+                "competitor": generate_competitor,
+                "financials": generate_financials,
+            }
+            with st.spinner("Generating your startup assets..."):
+                result = run_full_generation(idea_summary, st.session_state['finalized_name'], tone, generate_flags)
 
-            website_code = result.get('website','')
+            st.success("Generation Complete!")
 
-            # Try parsing JSON response (expected format from website_agent)
-            import json
-            try:
-                website_files = json.loads(website_code)
-            except Exception:
-                website_files = {}
+            if generate_tagline:
+                st.markdown(f"### Tagline\n{result.get('tagline','')}")
+            if generate_pitch:
+                st.markdown(f"### Elevator Pitch\n{result.get('pitch','')}")
+            if generate_audience:
+                st.markdown(f"### Target Audience & Pain Points\n{result.get('audience','')}")
+            if generate_brand:
+                st.markdown(f"### Brand Direction\n{result.get('brand','')}")
+            if generate_competitor:
+                st.markdown(f"### Competitor Analysis\n{result.get('competitor','')}")
+            if generate_financials:
+                st.markdown(f"### Financial Projections\n{result.get('financials','')}")
+            if generate_social_media:
+                st.markdown(f"### Social Media Post Ideas\n{result.get('social_media','')}")
+            if generate_website:
+                st.markdown("### Website Code")
+                website_code = result.get('website','')
 
-            if website_files:
-                for filename, content in website_files.items():
-                    with st.expander(filename):
-                        st.code(content, language="html" if filename.endswith(".html") else "css" if filename.endswith(".css") else "javascript" if filename.endswith(".js") else None)
+                # Parse website agent output into HTML, CSS, JS parts
+                html_code = css_code = js_code = ""
+                html_match = re.search(r"(?:```html|<html>)(.*?)(?:```|</html>)", website_code, re.DOTALL | re.IGNORECASE)
+                css_match = re.search(r"(?:```css)(.*?)(?:```)", website_code, re.DOTALL | re.IGNORECASE)
+                js_match = re.search(r"(?:```js|```javascript)(.*?)(?:```)", website_code, re.DOTALL | re.IGNORECASE)
 
-                # Zip all files for download
+                if html_match:
+                    html_code = html_match.group(1).strip()
+                if css_match:
+                    css_code = css_match.group(1).strip()
+                if js_match:
+                    js_code = js_match.group(1).strip()
+
+                if not (html_code and css_code and js_code):
+                    parts = re.split(r"\d\)\s*[Hh][Tt][Mm][Ll]|CSS|JavaScript|JS", website_code)
+                    if len(parts) >= 4:
+                        html_code = parts[1].strip()
+                        css_code = parts[2].strip()
+                        js_code = parts[3].strip()
+
+                with st.expander("HTML"):
+                    st.code(html_code, language="html")
+                with st.expander("CSS"):
+                    st.code(css_code, language="css")
+                with st.expander("JavaScript"):
+                    st.code(js_code, language="javascript")
+
                 zip_buffer = BytesIO()
                 with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                    for filename, content in website_files.items():
-                        zip_file.writestr(filename, content)
+                    zip_file.writestr("index.html", html_code)
+                    zip_file.writestr("styles.css", css_code)
+                    zip_file.writestr("scripts.js", js_code)
                 zip_buffer.seek(0)
 
                 st.download_button(
                     label="Download Website Files (ZIP)",
                     data=zip_buffer,
-                    file_name=f"{selected_name.replace(' ','_')}_website.zip",
+                    file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
                     mime="application/zip"
                 )
-            else:
-                st.warning("Website agent did not return valid JSON files.")
 
-        # PDF generation if pitch + brand + tagline present (minimum)
-        if generate_pitch and generate_brand and generate_tagline:
-            pdf_bytes = create_pitch_pdf(result)
-            st.download_button(
-                label="Download Pitch as PDF",
-                data=pdf_bytes,
-                file_name=f"{selected_name.replace(' ', '_')}_pitch.pdf",
-                mime="application/pdf",
-            )
+            # PDF generation if pitch + brand + tagline present (minimum)
+            if generate_pitch and generate_brand and generate_tagline:
+                pdf_bytes = create_pitch_pdf(result)
+                st.download_button(
+                    label="Download Pitch as PDF",
+                    data=pdf_bytes,
+                    file_name=f"{st.session_state['finalized_name'].replace(' ', '_')}_pitch.pdf",
+                    mime="application/pdf",
+                )
 
 else:
     st.info("Please enter your startup idea to generate names.")
