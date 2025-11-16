@@ -132,23 +132,39 @@ Output your response in clear paragraphs.
 """
     return run_completion(prompt)
 
-def website_agent(name, tone):
+def website_agent(name, tone, summary, brand):
     prompt = f"""
-You are a web developer.
+You are a professional full-stack web developer.
 
-Generate a simple, clean, and responsive **single-page website** for the startup named "{name}" using HTML, CSS, and JavaScript.
+Create a multi-page website for a startup with the following profile:
 
-The website should include:
-- A homepage header with the startup name and tagline
-- A section about the problem
-- A section about the solution
-- A contact form (no backend needed)
-- Styling that matches a {tone} tone
+Summary: {summary}
 
-Output your response as three separate code blocks, labeled clearly:
-1) HTML code
-2) CSS code
-3) JavaScript code
+Brand Direction: {brand}
+
+Startup Name: {name}
+
+Tone: {tone}
+
+Requirements:
+- Create these HTML pages: index.html, about.html, services.html, contact.html
+- Include navigation between pages
+- Responsive design suitable for desktop and mobile
+- Include CSS (styles.css) and JavaScript (scripts.js) files
+- The website should reflect the brand's color palette and style
+- Include sections about the problem, solution, and contact form
+- Use semantic HTML5 tags and modern CSS/JS best practices
+
+Output a JSON object with the filenames as keys and their content as values.
+Example:
+{{
+  "index.html": "<html>...</html>",
+  "about.html": "<html>...</html>",
+  "services.html": "<html>...</html>",
+  "contact.html": "<html>...</html>",
+  "styles.css": "body {{ ... }}",
+  "scripts.js": "document.querySelector(...)"
+}}
 """
     return run_completion(prompt)
 
@@ -321,7 +337,7 @@ def run_full_generation(idea_summary, selected_name, tone, generate_flags):
     if generate_flags["brand"]:
         results['brand'] = brand_agent(selected_name, tone)
     if generate_flags["website"]:
-        results['website'] = website_agent(selected_name, tone)
+        results['website'] = website_agent(selected_name, tone, idea_summary, results.get('brand', ''))
     if generate_flags["social_media"]:
         results['social_media'] = social_media_agent(selected_name, tone)
     if generate_flags["competitor"]:
@@ -398,55 +414,36 @@ if idea.strip():
             st.markdown(f"### Social Media Post Ideas\n{result.get('social_media','')}")
         if generate_website:
             st.markdown("### Website Code")
-            # Parse website agent output into HTML, CSS, JS parts
+
             website_code = result.get('website','')
-            # Attempt to split code blocks by labels
-            # Expected format: labeled code blocks with comments or code fences
-            
-            # Try simple extraction using regex for code blocks (assuming triple backticks and labels)
-            html_code = css_code = js_code = ""
-            html_match = re.search(r"(?:```html|<html>)(.*?)(?:```|</html>)", website_code, re.DOTALL | re.IGNORECASE)
-            css_match = re.search(r"(?:```css)(.*?)(?:```)", website_code, re.DOTALL | re.IGNORECASE)
-            js_match = re.search(r"(?:```js|```javascript)(.*?)(?:```)", website_code, re.DOTALL | re.IGNORECASE)
 
-            if html_match:
-                html_code = html_match.group(1).strip()
-            if css_match:
-                css_code = css_match.group(1).strip()
-            if js_match:
-                js_code = js_match.group(1).strip()
+            # Try parsing JSON response (expected format from website_agent)
+            import json
+            try:
+                website_files = json.loads(website_code)
+            except Exception:
+                website_files = {}
 
-            # Fallback parsing by labels (for output not fenced)
-            if not (html_code and css_code and js_code):
-                # Try split by lines like "1) HTML code", etc
-                parts = re.split(r"\d\)\s*[Hh][Tt][Mm][Ll]|CSS|JavaScript|JS", website_code)
-                if len(parts) >= 4:
-                    html_code = parts[1].strip()
-                    css_code = parts[2].strip()
-                    js_code = parts[3].strip()
+            if website_files:
+                for filename, content in website_files.items():
+                    with st.expander(filename):
+                        st.code(content, language="html" if filename.endswith(".html") else "css" if filename.endswith(".css") else "javascript" if filename.endswith(".js") else None)
 
-            # Show code in expanders
-            with st.expander("HTML"):
-                st.code(html_code, language="html")
-            with st.expander("CSS"):
-                st.code(css_code, language="css")
-            with st.expander("JavaScript"):
-                st.code(js_code, language="javascript")
+                # Zip all files for download
+                zip_buffer = BytesIO()
+                with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                    for filename, content in website_files.items():
+                        zip_file.writestr(filename, content)
+                zip_buffer.seek(0)
 
-            # Allow download as zip
-            zip_buffer = BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                zip_file.writestr("index.html", html_code)
-                zip_file.writestr("styles.css", css_code)
-                zip_file.writestr("scripts.js", js_code)
-            zip_buffer.seek(0)
-
-            st.download_button(
-                label="Download Website Files (ZIP)",
-                data=zip_buffer,
-                file_name=f"{selected_name.replace(' ','_')}_website.zip",
-                mime="application/zip"
-            )
+                st.download_button(
+                    label="Download Website Files (ZIP)",
+                    data=zip_buffer,
+                    file_name=f"{selected_name.replace(' ','_')}_website.zip",
+                    mime="application/zip"
+                )
+            else:
+                st.warning("Website agent did not return valid JSON files.")
 
         # PDF generation if pitch + brand + tagline present (minimum)
         if generate_pitch and generate_brand and generate_tagline:
