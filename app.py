@@ -352,7 +352,7 @@ if submitted:
 
             st.session_state['names_generated'] = name_options
             st.session_state['idea_summary'] = idea_summary
-        st.experimental_rerun()
+        st.rerun()
 
 if st.session_state['submitted']:
     idea_summary = st.session_state['idea_summary']
@@ -372,7 +372,7 @@ if st.session_state['submitted']:
 
         if st.button("Finalize Name"):
             st.session_state['finalized_name'] = final_name
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
@@ -500,3 +500,4 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
