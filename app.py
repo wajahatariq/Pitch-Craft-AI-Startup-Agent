@@ -433,7 +433,7 @@ if idea.strip():
 
         if st.button("Finalize Name"):
             st.session_state['finalized_name'] = final_name
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
@@ -521,3 +521,4 @@ if idea.strip():
                     file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
                     mime="application/zip"
                 )
+
