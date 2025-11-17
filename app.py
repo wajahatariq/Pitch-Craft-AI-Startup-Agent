@@ -12,19 +12,19 @@ import requests
 
 domainsduck_key = st.secrets["DOMAINDUCK_API_KEY"]
 
-# Load CSS from external file in the same directory as app.py
+# Load CSS from external file in the same directory as app.py (optional)
 css_path = Path(__file__).parent / "style.css"
-
 def local_css(file_path):
     with open(file_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-local_css(css_path)
+try:
+    local_css(css_path)
+except Exception:
+    pass  # ignore if no CSS file
 
 st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centered")
 
 st.title("PitchCraft – Your AI Startup Partner")
-
 st.markdown(
     """
 Generate **startup content dynamically**.  
@@ -32,8 +32,15 @@ Enter your startup idea, select tone, and toggle which assets to generate.
 """
 )
 
-# --- Domain availability check ---
+# --- Pollinations image generation for logo preview ---
+def generate_pollinations_image(prompt: str) -> str:
+    # URL encode prompt safely for URL
+    from urllib.parse import quote_plus
+    base_url = "https://image.pollinations.ai/prompt/"
+    url = base_url + quote_plus(prompt)
+    return url
 
+# --- Domain availability check ---
 def check_domain_availability(domain: str) -> str:
     url = "https://us.domainsduck.com/api/get/"
     params = {
@@ -57,8 +64,7 @@ def map_domain_status(status):
     else:
         return "Unable to check status"
 
-# --- LLM interaction helper ---
-
+# --- Helpers ---
 def clean_markdown(text):
     replacements = [
         ("**", ""),
@@ -71,78 +77,6 @@ def clean_markdown(text):
         text = text.replace(old, new)
     return text.strip()
 
-def create_pitch_pdf(data):
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=72, leftMargin=72,
-                            topMargin=72, bottomMargin=72)
-
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20, spaceBefore=10))
-    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=15))
-    styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
-    styles.add(ParagraphStyle(name='CustomBullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
-    styles.add(ParagraphStyle(name='CustomIndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
-
-    story = []
-
-    story.append(Paragraph(data['name'], styles['TitleCenter']))
-    story.append(Paragraph(data['tagline'], styles['Heading']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Problem", styles['Heading']))
-    story.append(Paragraph(data['problem'], styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Solution", styles['Heading']))
-    story.append(Paragraph(data['solution'], styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Target Audience & Pain Points", styles['Heading']))
-    audience_lines = data['audience'].strip().split('\n')
-    for line in audience_lines:
-        line = line.strip()
-        if not line:
-            continue
-        if line.startswith("•") or line.startswith("-"):
-            text = clean_markdown(line[1:].strip())
-            story.append(Paragraph(text, styles['CustomBullet'], bulletText="•"))
-        elif line.startswith("+"):
-            text = clean_markdown(line[1:].strip())
-            story.append(Paragraph(text, styles['CustomIndentedBullet'], bulletText="–"))
-        else:
-            story.append(Paragraph(clean_markdown(line), styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Elevator Pitch", styles['Heading']))
-    story.append(Paragraph(data['pitch'], styles['Body']))
-    story.append(Spacer(1, 12))
-
-    story.append(Paragraph("Brand Direction", styles['Heading']))
-    brand_text = data['brand']
-
-    options = re.split(r"\*\*Option \d+: Startup Name - [^\*]+\*\*", brand_text)
-    titles = re.findall(r"\*\*Option \d+: Startup Name - ([^\*]+)\*\*", brand_text)
-
-    if options and options[0].strip() == "":
-        options = options[1:]
-
-    for i, option_text in enumerate(options):
-        title = titles[i] if i < len(titles) else f"Option {i+1}"
-        story.append(Paragraph(f"Option {i+1}: {title}", styles['Heading']))
-
-        option_text_clean = clean_markdown(option_text)
-        for line in option_text_clean.strip().split('\n'):
-            line = line.strip()
-            if line:
-                story.append(Paragraph(line, styles['Body']))
-        story.append(Spacer(1, 12))
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-    return pdf
-    
 def run_completion(prompt: str):
     response = completion(
         model="groq/llama-3.1-8b-instant",
@@ -152,7 +86,6 @@ def run_completion(prompt: str):
     return response["choices"][0]["message"]["content"].strip()
 
 # --- Agents ---
-
 def idea_agent(idea):
     prompt = f"""
 You are a seasoned startup strategist. Analyze this startup idea carefully.
@@ -279,7 +212,6 @@ Output your response in three separate clearly labeled code blocks:
 """
     return run_completion(prompt)
 
-
 def social_media_agent(name, tone):
     prompt = f"""
 You are a social media strategist.
@@ -326,7 +258,6 @@ Write in bullet points, clear and concise.
     return run_completion(prompt)
 
 # --- Report generator ---
-
 def report_agent(name, tagline, pitch, audience, brand, idea_summary):
     if "." in pitch:
         problem = pitch.split(".", 1)[0] + "."
@@ -346,7 +277,6 @@ def report_agent(name, tagline, pitch, audience, brand, idea_summary):
     }
 
 # --- Workflow split into parts ---
-
 def run_name_generation(idea):
     idea_summary = idea_agent(idea)
     names = name_agent(idea_summary)
@@ -382,20 +312,20 @@ def run_full_generation(idea_summary, selected_name, tone, generate_flags):
 
 # --- Main Streamlit UI ---
 
-# Initialize session state variables for persistence
 if 'names_generated' not in st.session_state:
     st.session_state['names_generated'] = []
 if 'finalized_name' not in st.session_state:
     st.session_state['finalized_name'] = None
 if 'idea_summary' not in st.session_state:
     st.session_state['idea_summary'] = None
+if 'last_idea' not in st.session_state:
+    st.session_state['last_idea'] = ""
 
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
 if idea.strip():
-    # Reset if idea changed
-    if st.session_state.get('last_idea', '') != idea:
+    if st.session_state['last_idea'] != idea:
         st.session_state['names_generated'] = []
         st.session_state['finalized_name'] = None
         st.session_state['idea_summary'] = None
@@ -436,6 +366,11 @@ if idea.strip():
             st.experimental_rerun()
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
+
+        # Show logo preview from Pollinations based on finalized name and tone
+        logo_prompt = f"Logo concept for startup named '{st.session_state['finalized_name']}', tone: {tone.lower()}, simple, professional, clean design"
+        logo_url = generate_pollinations_image(logo_prompt)
+        st.image(logo_url, caption="Logo Preview (AI-generated)", use_column_width=True)
 
         generate_tagline = st.checkbox("Generate Tagline", value=True)
         generate_pitch = st.checkbox("Generate Elevator Pitch", value=True)
@@ -521,3 +456,5 @@ if idea.strip():
                     file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
                     mime="application/zip"
                 )
+else:
+    st.info("Enter your startup idea and press Submit to generate names.")
