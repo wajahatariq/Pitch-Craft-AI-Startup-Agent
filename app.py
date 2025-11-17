@@ -492,7 +492,7 @@ if st.session_state['submitted']:
         final_name = custom_name.strip() if custom_name.strip() else selected_name
         
         if final_name and len(final_name) > 0:
-            domain_to_check = final_name.replace(" ", "") + ".com"
+            domain_to_check = final_name.lower().replace(" ", "") + ".com"
             raw_availability = check_domain_availability(domain_to_check)
             availability = map_domain_status(raw_availability)
             st.markdown(f"**Domain check for `{domain_to_check}`:** **{availability}**")
@@ -658,4 +658,5 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
