@@ -8,6 +8,9 @@ from io import BytesIO
 from pathlib import Path
 import re
 import zipfile
+import requests
+
+domainsduck_key = st.secrets["DOMAINDUCK_API_KEY"]
 
 # Load CSS from external file in the same directory as app.py
 css_path = Path(__file__).parent / "style.css"
@@ -28,6 +31,22 @@ Generate **startup content dynamically**.
 Enter your startup idea, select tone, and toggle which assets to generate.
 """
 )
+
+# --- Domain availability check ---
+
+def check_domain_availability(domain: str) -> str:
+    url = "https://us.domainsduck.com/api/get/"
+    params = {
+        "domain": domain,
+        "apikey": domainsduck_key,
+    }
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("availability", "unknown")
+    except Exception as e:
+        return f"error: {str(e)}"
 
 # --- LLM interaction helper ---
 
@@ -316,10 +335,6 @@ def report_agent(name, tagline, pitch, audience, brand, idea_summary):
         "idea_summary": idea_summary,
     }
 
-# --- PDF generation functions (unchanged, omitted here for brevity) ---
-
-# Insert your clean_markdown and create_pitch_pdf functions here (same as before)...
-
 # --- Workflow split into parts ---
 
 def run_name_generation(idea):
@@ -395,9 +410,16 @@ if idea.strip():
 
     if st.session_state['finalized_name'] is None:
         selected_name = st.selectbox("Select a startup name", name_options)
+
+        # Domain check
+        domain_to_check = selected_name.replace(" ", "") + ".com"
+        availability = check_domain_availability(domain_to_check)
+
+        st.markdown(f"**Domain check:** `{domain_to_check}` is **{availability.upper()}**")
+
         if st.button("Finalize Name"):
             st.session_state['finalized_name'] = selected_name
-            st.rerun()
+            st.experimental_rerun()
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
@@ -482,23 +504,4 @@ if idea.strip():
                     label="Download Website Files (ZIP)",
                     data=zip_buffer,
                     file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
-                    mime="application/zip"
-                )
-
-            # PDF generation if pitch + brand + tagline present (minimum)
-            if generate_pitch and generate_brand and generate_tagline:
-                pdf_bytes = create_pitch_pdf(result)
-                st.download_button(
-                    label="Download Pitch as PDF",
-                    data=pdf_bytes,
-                    file_name=f"{st.session_state['finalized_name'].replace(' ', '_')}_pitch.pdf",
-                    mime="application/pdf",
-                )
-
-else:
-    st.info("Please enter your startup idea to generate names.")
-
-
-
-
-
+                    mime="application/
