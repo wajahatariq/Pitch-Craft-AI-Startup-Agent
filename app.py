@@ -219,23 +219,31 @@ Output your response in clear paragraphs.
 
 def website_agent(name, tone):
     prompt = f"""
-You are a web developer.
+You are a professional web developer.
 
-Generate a simple, clean, and responsive **single-page website** for the startup named "{name}" using HTML, CSS, and JavaScript.
+Generate a complete, clean, and fully functional **single-page website** for the startup named "{name}". 
 
-The website should include:
-- A homepage header with the startup name and tagline
-- A section about the problem
-- A section about the solution
-- A contact form (no backend needed)
-- Styling that matches a {tone} tone
+Requirements:
+- Use semantic, well-structured HTML5.
+- Provide responsive CSS with detailed styling matching the startup's tone: {tone}.
+- Include interactive JavaScript functionality for the contact form and smooth user experience.
+- The website must have the following sections:
+  1. Header with the startup name and a catchy tagline.
+  2. About the problem the startup solves.
+  3. Description of the solution and its unique value proposition.
+  4. A fully functional contact form with input validation (name, email, message).
+  5. Clear call-to-action buttons and smooth scrolling navigation.
+  6. Responsive design for mobile and desktop screens.
+  7. Modern and visually appealing UI elements with subtle animations or transitions.
 
-Output your response as three separate code blocks, labeled clearly:
-1) HTML code
-2) CSS code
+Output your response in three separate clearly labeled code blocks:
+
+1) HTML code  
+2) CSS code  
 3) JavaScript code
 """
     return run_completion(prompt)
+
 
 def social_media_agent(name, tone):
     prompt = f"""
@@ -483,6 +491,7 @@ if idea.strip():
 
 else:
     st.info("Please enter your startup idea to generate names.")
+
 
 
 
