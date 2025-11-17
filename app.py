@@ -215,6 +215,7 @@ Requirements:
   - Smooth fade-in animations on scroll for sections
   - Buttons with rounded corners, subtle shadows, hover and focus states
   - Consistent spacing, readable font sizes, and a clear visual hierarchy
+  - Should have centralized justified layout                                              
 - JavaScript should handle:
   - Smooth scrolling navigation for internal links
   - Simple client-side form validation with inline error messages for the contact form (validate required fields and email format)
@@ -232,10 +233,13 @@ Requirements:
   3. Features section:
      - At least 3 feature cards, each with an icon (emoji or inline SVG), title, and short description
 
-  4. Testimonials section:
+  4. Services section:
+     - At least 4 Services each with an icon (emoji or inline SVG), title, and short description
+
+  5. Testimonials section:
      - 3 testimonials with user names, photos (use placeholder images), and quotes
 
-  5. Contact section:
+  6. Contact section:
      - Contact form with Name, Email, Message fields
      - All inputs required with proper validation
      - Submit button with hover effect
@@ -253,8 +257,6 @@ Output your response in **three separate labeled code blocks**:
 Do NOT include explanations or extra text, only code blocks.
 """
     return run_completion(prompt)
-
-
 
 def social_media_agent(name, tone):
     prompt = f"""
@@ -587,6 +589,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
