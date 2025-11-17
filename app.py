@@ -55,7 +55,7 @@ def create_pitch_pdf(pitch_text, startup_name):
 
 # --- Pollinations image generation for logo preview ---
 def generate_stability_image(prompt: str) -> Image.Image:
-    api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
+    api_url = "https://api.stability.ai/v1/generation/stable-diffusion-512-v2-1/text-to-image"
     api_key = st.secrets["STABILITY_API_KEY"]
 
     headers = {
@@ -656,6 +656,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
