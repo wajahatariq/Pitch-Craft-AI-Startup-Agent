@@ -108,8 +108,6 @@ Do NOT include any explanations, descriptions, or pronunciation guides.
 Avoid generic words like "AI" and "Tech".  
 Names only.  
 
-Use a {tone} tone suitable for the startup idea below.
-
 Startup idea:
 {idea}
 """
@@ -535,6 +533,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
