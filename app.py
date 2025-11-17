@@ -384,7 +384,7 @@ idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that con
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
 if idea.strip():
-    # If idea changes, reset session state to avoid mismatch
+    # Reset if idea changed
     if st.session_state.get('last_idea', '') != idea:
         st.session_state['names_generated'] = []
         st.session_state['finalized_name'] = None
@@ -411,14 +411,17 @@ if idea.strip():
     if st.session_state['finalized_name'] is None:
         selected_name = st.selectbox("Select a startup name", name_options)
 
-        # Domain check
-        domain_to_check = selected_name.replace(" ", "") + ".com"
+        custom_name = st.text_input("Or enter your own startup name")
+
+        final_name = custom_name.strip() if custom_name.strip() else selected_name
+
+        domain_to_check = final_name.replace(" ", "") + ".com"
         availability = check_domain_availability(domain_to_check)
 
-        st.markdown(f"**Domain check:** `{domain_to_check}` is **{availability.upper()}**")
+        st.markdown(f"**Domain check for `{domain_to_check}`:** **{availability.upper()}**")
 
         if st.button("Finalize Name"):
-            st.session_state['finalized_name'] = selected_name
+            st.session_state['finalized_name'] = final_name
             st.experimental_rerun()
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
@@ -501,21 +504,4 @@ if idea.strip():
                 zip_buffer.seek(0)
 
                 st.download_button(
-                    label="Download Website Files (ZIP)",
-                    data=zip_buffer,
-                    file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
-                    mime="application/zip"
-                )
-
-            # PDF generation if pitch + brand + tagline present (minimum)
-            if generate_pitch and generate_brand and generate_tagline:
-                pdf_bytes = create_pitch_pdf(result)
-                st.download_button(
-                    label="Download Pitch as PDF",
-                    data=pdf_bytes,
-                    file_name=f"{st.session_state['finalized_name'].replace(' ', '_')}_pitch.pdf",
-                    mime="application/pdf",
-                )
-
-else:
-    st.info("Please enter your startup idea to generate names.")
+                    label="Download
