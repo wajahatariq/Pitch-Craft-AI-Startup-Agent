@@ -466,7 +466,16 @@ if st.session_state['submitted']:
                 "financials": generate_financials,
             }
             with st.spinner("Generating your startup assets..."):
-                result = run_full_generation(idea_summary, st.session_state['finalized_name'], tone, generate_flags)
+                # Regenerate idea summary with finalized name to align AI outputs (optional but recommended)
+                updated_idea_summary = idea_agent(st.session_state['finalized_name'])
+        
+                result = run_full_generation(
+                    updated_idea_summary,
+                    st.session_state['finalized_name'],
+                    tone,
+                    generate_flags
+                )
+
 
             st.success("Generation Complete!")
 
@@ -589,6 +598,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
