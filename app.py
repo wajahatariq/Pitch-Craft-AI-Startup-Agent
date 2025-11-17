@@ -359,8 +359,14 @@ if st.session_state['submitted']:
     name_options = st.session_state['names_generated']
 
     if st.session_state['finalized_name'] is None:
-        selected_name = st.selectbox("Select a startup name", name_options)
+        if name_options:
+            selected_name = st.radio("Select a startup name", name_options)
+        else:
+            st.warning("No AI-generated names available. Please enter your own startup name below.")
+            selected_name = None
+        
         custom_name = st.text_input("Or enter your own startup name (optional)")
+
 
         final_name = custom_name.strip() if custom_name.strip() else selected_name
         
@@ -505,5 +511,6 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
