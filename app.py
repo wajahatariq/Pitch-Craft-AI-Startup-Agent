@@ -32,21 +32,8 @@ Enter your startup idea, select tone, and toggle which assets to generate.
 """
 )
 
-@st.cache_data(show_spinner=False)
-def get_logo_url(name, tone):
-    prompt = f"Logo concept for startup named '{name}', {tone.lower()} tone, simple and professional"
-    return generate_pollinations_image(prompt)
-
 # --- Domain availability check ---
-def generate_pollinations_image(prompt):
-    """
-    Call Pollinations API to generate an image based on prompt.
-    Returns URL or None if failed.
-    """
-    url = "https://image.pollinations.ai/prompt/" + requests.utils.quote(prompt)
-    # This endpoint returns an image directly in response, so you can use the URL
-    return url
-    
+
 def check_domain_availability(domain: str) -> str:
     url = "https://us.domainsduck.com/api/get/"
     params = {
@@ -482,14 +469,7 @@ if idea.strip():
             if generate_audience:
                 st.markdown(f"### Target Audience & Pain Points\n{result.get('audience','')}")
             if generate_brand:
-                brand_text = result.get('brand','')
-                st.markdown(f"### Brand Direction\n{brand_text}")
-            
-                image_url = get_logo_url(st.session_state['finalized_name'], tone)
-                if image_url:
-                    st.image(image_url, caption="Generated Logo Concept", use_column_width=True)
-            
-
+                st.markdown(f"### Brand Direction\n{result.get('brand','')}")
             if generate_competitor:
                 st.markdown(f"### Competitor Analysis\n{result.get('competitor','')}")
             if generate_financials:
@@ -541,4 +521,3 @@ if idea.strip():
                     file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
                     mime="application/zip"
                 )
-
