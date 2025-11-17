@@ -31,6 +31,90 @@ Enter your startup idea, select tone, and toggle which assets to generate.
 
 # --- LLM interaction helper ---
 
+def clean_markdown(text):
+    replacements = [
+        ("**", ""),
+        ("*", ""),
+        ("+", ""),
+        ("\u2022", ""),
+        ("\n\n", "\n"),
+    ]
+    for old, new in replacements:
+        text = text.replace(old, new)
+    return text.strip()
+
+def create_pitch_pdf(data):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=72, leftMargin=72,
+                            topMargin=72, bottomMargin=72)
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='TitleCenter', fontSize=24, leading=28, alignment=TA_CENTER, spaceAfter=20, spaceBefore=10))
+    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, spaceBefore=15))
+    styles.add(ParagraphStyle(name='Body', fontSize=12, leading=16))
+    styles.add(ParagraphStyle(name='CustomBullet', fontSize=12, leading=16, leftIndent=15, bulletIndent=5))
+    styles.add(ParagraphStyle(name='CustomIndentedBullet', fontSize=12, leading=16, leftIndent=30, bulletIndent=10))
+
+    story = []
+
+    story.append(Paragraph(data['name'], styles['TitleCenter']))
+    story.append(Paragraph(data['tagline'], styles['Heading']))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Problem", styles['Heading']))
+    story.append(Paragraph(data['problem'], styles['Body']))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Solution", styles['Heading']))
+    story.append(Paragraph(data['solution'], styles['Body']))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Target Audience & Pain Points", styles['Heading']))
+    audience_lines = data['audience'].strip().split('\n')
+    for line in audience_lines:
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("•") or line.startswith("-"):
+            text = clean_markdown(line[1:].strip())
+            story.append(Paragraph(text, styles['CustomBullet'], bulletText="•"))
+        elif line.startswith("+"):
+            text = clean_markdown(line[1:].strip())
+            story.append(Paragraph(text, styles['CustomIndentedBullet'], bulletText="–"))
+        else:
+            story.append(Paragraph(clean_markdown(line), styles['Body']))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Elevator Pitch", styles['Heading']))
+    story.append(Paragraph(data['pitch'], styles['Body']))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Brand Direction", styles['Heading']))
+    brand_text = data['brand']
+
+    options = re.split(r"\*\*Option \d+: Startup Name - [^\*]+\*\*", brand_text)
+    titles = re.findall(r"\*\*Option \d+: Startup Name - ([^\*]+)\*\*", brand_text)
+
+    if options and options[0].strip() == "":
+        options = options[1:]
+
+    for i, option_text in enumerate(options):
+        title = titles[i] if i < len(titles) else f"Option {i+1}"
+        story.append(Paragraph(f"Option {i+1}: {title}", styles['Heading']))
+
+        option_text_clean = clean_markdown(option_text)
+        for line in option_text_clean.strip().split('\n'):
+            line = line.strip()
+            if line:
+                story.append(Paragraph(line, styles['Body']))
+        story.append(Spacer(1, 12))
+
+    doc.build(story)
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf
+    
 def run_completion(prompt: str):
     response = completion(
         model="groq/llama-3.1-8b-instant",
@@ -399,5 +483,6 @@ if idea.strip():
 
 else:
     st.info("Please enter your startup idea to generate names.")
+
 
 
