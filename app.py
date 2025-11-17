@@ -504,4 +504,8 @@ if idea.strip():
                 zip_buffer.seek(0)
 
                 st.download_button(
-                    label="Download
+                    label="Download Website Files (ZIP)",
+                    data=zip_buffer,
+                    file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
+                    mime="application/zip"
+                )
