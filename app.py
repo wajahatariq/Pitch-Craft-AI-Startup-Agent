@@ -55,16 +55,14 @@ def create_pitch_pdf(pitch_text, startup_name):
 
 # --- Pollinations image generation for logo preview ---
 def generate_stability_image(prompt: str) -> Image.Image | None:
-    import requests
-    from io import BytesIO
-    from PIL import Image
+    import io
 
     api_url = "https://api.stability.ai/v2beta/stable-image/generate/core"
     api_key = st.secrets["STABILITY_API_KEY"]
 
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "Accept": "image/png",  # get raw PNG image bytes
+        "Accept": "image/png",
         "stability-client-id": "pitchcraft-app",
         "stability-client-user-id": "user-unique-id",
         "stability-client-version": "1.0",
@@ -73,11 +71,16 @@ def generate_stability_image(prompt: str) -> Image.Image | None:
     data = {
         "prompt": prompt,
         "output_format": "png",
-        "aspect_ratio": "1:1",
-        # add other optional params if needed, e.g. style_preset, seed
+        # Optional params you can add:
+        # "aspect_ratio": "1:1",
+        # "style_preset": "digital-art",
+        # "seed": 0,
     }
 
-    files = {"none": ""}  # dummy field to enforce multipart/form-data
+    # Send a minimal dummy file with some bytes to comply with multipart/form-data
+    files = {
+        "image": ("none", io.BytesIO(b" "), "application/octet-stream")
+    }
 
     try:
         response = requests.post(api_url, headers=headers, data=data, files=files)
@@ -87,6 +90,7 @@ def generate_stability_image(prompt: str) -> Image.Image | None:
     except Exception as e:
         st.error(f"Failed to generate logo: {e}")
         return None
+
 
 # --- Domain availability check ---
 def check_domain_availability(domain: str) -> str:
@@ -654,6 +658,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
