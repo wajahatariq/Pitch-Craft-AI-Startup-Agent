@@ -574,8 +574,8 @@ if st.session_state['submitted']:
                     zip_buffer = BytesIO()
                     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                         zip_file.writestr("index.html", html_code)
-                        zip_file.writestr("styles.css", css_code)
-                        zip_file.writestr("scripts.js", js_code)
+                        zip_file.writestr("style.css", css_code)
+                        zip_file.writestr("script.js", js_code)
                     zip_buffer.seek(0)
 
                     st.download_button(
@@ -587,6 +587,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
