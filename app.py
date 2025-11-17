@@ -252,6 +252,8 @@ if 'idea_summary' not in st.session_state:
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
+# ... your earlier code remains unchanged ...
+
 if idea.strip():
     # Reset if idea changed
     if st.session_state.get('last_idea', '') != idea:
@@ -284,16 +286,17 @@ if idea.strip():
 
         final_name = custom_name.strip() if custom_name.strip() else selected_name
 
-        domain_to_check = final_name.replace(" ", "") + ".com"
-        raw_availability = check_domain_availability(domain_to_check)
-        availability = map_domain_status(raw_availability)
+        if final_name:
+            domain_to_check = final_name.replace(" ", "") + ".com"
+            raw_availability = check_domain_availability(domain_to_check)
+            availability = map_domain_status(raw_availability)
+            st.markdown(f"**Domain check for `{domain_to_check}`:** **{availability}**")
+        else:
+            st.markdown("Please enter or select a valid startup name to check domain availability.")
 
-        st.markdown(f"**Domain check for `{domain_to_check}`:** **{availability}**")
-
-        if st.button("Finalize Name"):
+        if st.button("Finalize Name") and final_name:
             st.session_state['finalized_name'] = final_name
             st.experimental_rerun()
-
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
@@ -392,3 +395,4 @@ if idea.strip():
                     file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
                     mime="application/zip"
                 )
+
