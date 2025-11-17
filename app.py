@@ -54,39 +54,37 @@ def create_pitch_pdf(pitch_text, startup_name):
     return buffer
 
 # --- Pollinations image generation for logo preview ---
-def generate_stability_image(prompt: str) -> Image.Image:
-    api_url = "https://api.stability.ai/v1/generation/stable-diffusion-512-v2-1/text-to-image"
+def generate_stability_image(prompt: str) -> Image.Image | None:
+    api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd35"
     api_key = st.secrets["STABILITY_API_KEY"]
 
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
+        "Accept": "image/png",  # receive raw image bytes
+        "stability-client-id": "pitchcraft-app",
+        "stability-client-user-id": "user-unique-id",  # you can make this dynamic if you want
+        "stability-client-version": "1.0",
     }
 
-    json_payload = {
-        "text_prompts": [
-            {
-                "text": prompt,
-                "weight": 1
-            }
-        ],
+    data = {
+        "prompt": prompt,
+        "output_format": "png",
         "cfg_scale": 7,
-        "clip_guidance_preset": "FAST_BLUE",
-        "height": 512,
-        "width": 512,
-        "samples": 1,
-        "steps": 30,
+        "aspect_ratio": "1:1",
+        "model": "sd3.5-large"
     }
 
-    response = requests.post(api_url, headers=headers, json=json_payload)
-    response.raise_for_status()
-    data = response.json()
+    # dummy field for multipart/form-data
+    files = {"none": ""}
 
-    # The image is base64 encoded inside the response
-    base64_image = data['artifacts'][0]['base64']
-    image_bytes = BytesIO(base64.b64decode(base64_image))
-    image = Image.open(image_bytes)
-    return image
+    try:
+        response = requests.post(api_url, headers=headers, data=data, files=files)
+        response.raise_for_status()
+        image = Image.open(BytesIO(response.content))
+        return image
+    except Exception as e:
+        st.error(f"Failed to generate logo: {e}")
+        return None
 
 # --- Domain availability check ---
 def check_domain_availability(domain: str) -> str:
@@ -497,13 +495,11 @@ if st.session_state['submitted']:
             f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
             f"The design should stand out and be suitable for various media, including digital and print."
         )
-        
-        with st.spinner("Generating logo..."):
-            try:
-                logo_image = generate_stability_image(logo_prompt)
-                st.image(logo_image, caption="Logo Preview (AI-generated)", use_column_width=True)
-            except Exception as e:
-                st.error(f"Failed to generate logo: {e}")
+    
+        logo_image = generate_stability_image(logo_prompt)
+        if logo_image:
+            st.image(logo_image, caption="Logo Preview (AI-generated)", use_column_width=True)
+
 
         # Asset toggles
         generate_tagline = st.checkbox("Generate Tagline", value=True)
@@ -656,6 +652,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
