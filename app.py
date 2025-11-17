@@ -203,38 +203,57 @@ def website_agent(name, tone):
     prompt = f"""
 You are a professional front-end web developer and UI/UX designer.
 
-Generate a modern, visually appealing, fully responsive single-page website for the startup named "{name}".
+Generate a **modern, fully responsive, visually appealing single-page website** for the startup named "{name}".
 
 Requirements:
-- Use Tailwind CSS via CDN for all styling (no custom CSS files).
+- Provide three separate code blocks for HTML, CSS, and JavaScript.
+- Use clean, semantic HTML5 markup with proper ARIA attributes and alt text for accessibility.
 - Use Google Fonts: 'Poppins' for headings and 'Roboto' for body text, loaded in the HTML head.
-- Create a harmonious color palette matching a {tone.lower()} tone using Tailwind utility classes.
-- Implement a sticky header with navigation links that changes background color smoothly on scroll.
-- Include smooth fade-in animations on scroll and subtle hover effects on buttons and links using Tailwind classes and minimal JavaScript.
-- Use semantic HTML5 elements with proper aria labels and alt text for accessibility.
-- SEO-friendly meta tags including page title and description reflecting the startup name and tone.
-- The page must contain these sections:
+- The CSS should include detailed styling for:
+  - Responsive layout with CSS Grid and Flexbox
+  - Sticky header with smooth background color transition on scroll
+  - Smooth fade-in animations on scroll for sections
+  - Buttons with rounded corners, subtle shadows, hover and focus states
+  - Consistent spacing, readable font sizes, and a clear visual hierarchy
+- JavaScript should handle:
+  - Smooth scrolling navigation for internal links
+  - Simple client-side form validation with inline error messages for the contact form (validate required fields and email format)
+  - Add subtle animations or transitions triggered on scroll
+- The page structure must include these sections:
 
-  1. Hero section with startup name, tagline, and a prominent call-to-action button.
-  2. About section describing the problem the startup solves.
-  3. Features section with 3 feature cards including icons (can use emojis or inline SVG).
-  4. Testimonials section with 3 testimonials (use placeholder images).
-  5. Contact section with a form (name, email, message) with client-side validation.
+  1. Hero section:
+     - Large heading with the startup name
+     - Tagline in a smaller font
+     - Centered call-to-action button
 
-- Use minimal custom JavaScript only for:
-  - Smooth scrolling navigation
-  - Basic form validation with inline error messages
+  2. About section:
+     - Clear description of the problem the startup solves
 
-Output your response in **two separate labeled code blocks**:
+  3. Features section:
+     - At least 3 feature cards, each with an icon (emoji or inline SVG), title, and short description
+
+  4. Testimonials section:
+     - 3 testimonials with user names, photos (use placeholder images), and quotes
+
+  5. Contact section:
+     - Contact form with Name, Email, Message fields
+     - All inputs required with proper validation
+     - Submit button with hover effect
+
+- Include SEO-friendly meta tags (title, description) reflecting the startup name and tone.
+- Ensure the website is accessible, mobile-friendly, and visually balanced.
+- Use only vanilla CSS and JavaScript (no external CSS frameworks or libraries).
+
+Output your response in **three separate labeled code blocks**:
 
 1) HTML code  
-2) JavaScript code
+2) CSS code  
+3) JavaScript code  
 
-Do NOT include custom CSS code block because Tailwind CSS will handle all styling.
-
-Do NOT include any explanations, only provide the code blocks.
+Do NOT include explanations or extra text, only code blocks.
 """
     return run_completion(prompt)
+
 
 
 def social_media_agent(name, tone):
@@ -568,6 +587,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
