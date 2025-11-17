@@ -221,20 +221,26 @@ def website_agent(name, tone):
     prompt = f"""
 You are a professional web developer.
 
-Generate a complete, clean, and fully functional **single-page website** for the startup named "{name}". 
+Generate a modern, fully responsive, and visually appealing **single-page website** for the startup named "{name}".
 
 Requirements:
 - Use semantic, well-structured HTML5.
-- Provide responsive CSS with detailed styling matching the startup's tone: {tone}.
-- Include interactive JavaScript functionality for the contact form and smooth user experience.
-- The website must have the following sections:
-  1. Header with the startup name and a catchy tagline.
-  2. About the problem the startup solves.
-  3. Description of the solution and its unique value proposition.
-  4. A fully functional contact form with input validation (name, email, message).
-  5. Clear call-to-action buttons and smooth scrolling navigation.
-  6. Responsive design for mobile and desktop screens.
-  7. Modern and visually appealing UI elements with subtle animations or transitions.
+- Include the following sections:
+  1. Hero section with startup name, tagline, and a call-to-action button.
+  2. About section describing the problem the startup solves.
+  3. Features or solution section with cards or icons.
+  4. Testimonials or social proof section (3 example testimonials).
+  5. Contact section with a fully functional contact form (name, email, message) including input validation.
+- Use a clean, consistent color scheme that fits the tone: {tone}.
+- Include smooth scrolling navigation with a fixed header menu.
+- Use responsive CSS that works well on mobile and desktop.
+- Add subtle animations and transitions (e.g., fade-in on scroll, button hover effects).
+- Provide a sticky navigation bar with links to sections.
+- Ensure accessibility best practices (aria labels, alt text, proper heading hierarchy).
+- Include SEO-friendly meta tags and page title.
+- Use plain CSS or a lightweight framework (like Flexbox and Grid) for layout.
+- Add JavaScript only for form validation and smooth scrolling navigation.
+- Structure your output clearly in three labeled code blocks: HTML, CSS, and JavaScript.
 
 Output your response in three separate clearly labeled code blocks:
 
@@ -491,6 +497,7 @@ if idea.strip():
 
 else:
     st.info("Please enter your startup idea to generate names.")
+
 
 
 
