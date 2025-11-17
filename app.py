@@ -12,15 +12,16 @@ import requests
 
 domainsduck_key = st.secrets["DOMAINDUCK_API_KEY"]
 
-# Load CSS from external file in the same directory as app.py (optional)
+# Load CSS from external file
 css_path = Path(__file__).parent / "style.css"
 def local_css(file_path):
-    with open(file_path) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-try:
-    local_css(css_path)
-except Exception:
-    pass  # ignore if no CSS file
+    try:
+        with open(file_path) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    except Exception:
+        pass  # ignore if no CSS file
+
+local_css(css_path)
 
 st.set_page_config(page_title="PitchCraft - AI Startup Partner", layout="centered")
 
@@ -34,7 +35,6 @@ Enter your startup idea, select tone, and toggle which assets to generate.
 
 # --- Pollinations image generation for logo preview ---
 def generate_pollinations_image(prompt: str) -> str:
-    # URL encode prompt safely for URL
     from urllib.parse import quote_plus
     base_url = "https://image.pollinations.ai/prompt/"
     url = base_url + quote_plus(prompt)
@@ -310,7 +310,7 @@ def run_full_generation(idea_summary, selected_name, tone, generate_flags):
     ))
     return results
 
-# --- Main Streamlit UI ---
+# --- Streamlit UI ---
 
 if 'names_generated' not in st.session_state:
     st.session_state['names_generated'] = []
@@ -320,21 +320,29 @@ if 'idea_summary' not in st.session_state:
     st.session_state['idea_summary'] = None
 if 'last_idea' not in st.session_state:
     st.session_state['last_idea'] = ""
+if 'submitted' not in st.session_state:
+    st.session_state['submitted'] = False
 
 idea = st.text_area("Enter your startup idea", placeholder="e.g. An app that connects students with mentors.")
 tone = st.selectbox("Select tone", ["Formal", "Casual", "Fun", "Investor"])
 
-if idea.strip():
-    if st.session_state['last_idea'] != idea:
-        st.session_state['names_generated'] = []
-        st.session_state['finalized_name'] = None
-        st.session_state['idea_summary'] = None
-        st.session_state['last_idea'] = idea
+# Reset session states if idea changed
+if st.session_state['last_idea'] != idea:
+    st.session_state['last_idea'] = idea
+    st.session_state['submitted'] = False
+    st.session_state['names_generated'] = []
+    st.session_state['finalized_name'] = None
+    st.session_state['idea_summary'] = None
 
-    if not st.session_state['names_generated']:
+submitted = st.button("Submit")
+
+if submitted:
+    if not idea.strip():
+        st.warning("Please enter your startup idea before submitting.")
+    else:
+        st.session_state['submitted'] = True
         with st.spinner("Generating startup names..."):
             idea_summary, names_text = run_name_generation(idea)
-            # Parse names list
             name_options = []
             for line in names_text.split('\n'):
                 line = line.strip()
@@ -344,14 +352,15 @@ if idea.strip():
 
             st.session_state['names_generated'] = name_options
             st.session_state['idea_summary'] = idea_summary
-    else:
-        name_options = st.session_state['names_generated']
-        idea_summary = st.session_state['idea_summary']
+        st.experimental_rerun()
+
+if st.session_state['submitted']:
+    idea_summary = st.session_state['idea_summary']
+    name_options = st.session_state['names_generated']
 
     if st.session_state['finalized_name'] is None:
         selected_name = st.selectbox("Select a startup name", name_options)
-
-        custom_name = st.text_input("Or enter your own startup name")
+        custom_name = st.text_input("Or enter your own startup name (optional)")
 
         final_name = custom_name.strip() if custom_name.strip() else selected_name
 
@@ -367,16 +376,16 @@ if idea.strip():
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
-        # Show logo preview from Pollinations based on finalized name and tone
         logo_prompt = f"Logo concept for startup named '{st.session_state['finalized_name']}', tone: {tone.lower()}, simple, professional, clean design"
         logo_url = generate_pollinations_image(logo_prompt)
         st.image(logo_url, caption="Logo Preview (AI-generated)", use_column_width=True)
 
+        # Asset toggles
         generate_tagline = st.checkbox("Generate Tagline", value=True)
         generate_pitch = st.checkbox("Generate Elevator Pitch", value=True)
         generate_audience = st.checkbox("Generate Target Audience & Pain Points", value=True)
         generate_brand = st.checkbox("Generate Brand Direction", value=True)
-        generate_website = st.checkbox("Generate Website (HTML/CSS/JS)", value=False)
+        generate_website = st.checkbox("Generate Website (HTML/CSS/JS)", value=True)
         generate_social_media = st.checkbox("Generate Social Media Post Ideas", value=False)
         generate_competitor = st.checkbox("Generate Competitor Analysis", value=False)
         generate_financials = st.checkbox("Generate Financial Projections", value=False)
@@ -397,27 +406,41 @@ if idea.strip():
 
             st.success("Generation Complete!")
 
-            if generate_tagline:
-                st.markdown(f"### Tagline\n{result.get('tagline','')}")
-            if generate_pitch:
-                st.markdown(f"### Elevator Pitch\n{result.get('pitch','')}")
-            if generate_audience:
-                st.markdown(f"### Target Audience & Pain Points\n{result.get('audience','')}")
-            if generate_brand:
-                st.markdown(f"### Brand Direction\n{result.get('brand','')}")
-            if generate_competitor:
-                st.markdown(f"### Competitor Analysis\n{result.get('competitor','')}")
-            if generate_financials:
-                st.markdown(f"### Financial Projections\n{result.get('financials','')}")
-            if generate_social_media:
-                st.markdown(f"### Social Media Post Ideas\n{result.get('social_media','')}")
+            tabs = st.tabs(["Tagline", "Pitch", "Audience", "Brand", "Competitor", "Financials", "Social Media", "Website Preview", "Website Code"])
 
+            if generate_tagline:
+                with tabs[0]:
+                    st.markdown(f"### Tagline\n{result.get('tagline','')}")
+
+            if generate_pitch:
+                with tabs[1]:
+                    st.markdown(f"### Elevator Pitch\n{result.get('pitch','')}")
+
+            if generate_audience:
+                with tabs[2]:
+                    st.markdown(f"### Target Audience & Pain Points\n{result.get('audience','')}")
+
+            if generate_brand:
+                with tabs[3]:
+                    st.markdown(f"### Brand Direction\n{result.get('brand','')}")
+
+            if generate_competitor:
+                with tabs[4]:
+                    st.markdown(f"### Competitor Analysis\n{result.get('competitor','')}")
+
+            if generate_financials:
+                with tabs[5]:
+                    st.markdown(f"### Financial Projections\n{result.get('financials','')}")
+
+            if generate_social_media:
+                with tabs[6]:
+                    st.markdown(f"### Social Media Post Ideas\n{result.get('social_media','')}")
+
+            # Website preview tab with iframe
             if generate_website:
-                st.markdown("### Website Code")
+                html_code = css_code = js_code = ""
                 website_code = result.get('website','')
 
-                # Parse website agent output into HTML, CSS, JS parts
-                html_code = css_code = js_code = ""
                 html_match = re.search(r"(?:```html|<html>)(.*?)(?:```|</html>)", website_code, re.DOTALL | re.IGNORECASE)
                 css_match = re.search(r"(?:```css)(.*?)(?:```)", website_code, re.DOTALL | re.IGNORECASE)
                 js_match = re.search(r"(?:```js|```javascript)(.*?)(?:```)", website_code, re.DOTALL | re.IGNORECASE)
@@ -436,25 +459,44 @@ if idea.strip():
                         css_code = parts[2].strip()
                         js_code = parts[3].strip()
 
-                with st.expander("HTML"):
+                full_html = f"""
+                <html>
+                <head>
+                <style>{css_code}</style>
+                </head>
+                <body>
+                {html_code}
+                <script>{js_code}</script>
+                </body>
+                </html>
+                """
+
+                with tabs[7]:
+                    st.markdown("### Live Website Preview")
+                    st.components.v1.html(full_html, height=600, scrolling=True)
+
+                with tabs[8]:
+                    st.markdown("### Website Code")
+                    st.subheader("HTML")
                     st.code(html_code, language="html")
-                with st.expander("CSS"):
+                    st.subheader("CSS")
                     st.code(css_code, language="css")
-                with st.expander("JavaScript"):
+                    st.subheader("JavaScript")
                     st.code(js_code, language="javascript")
 
-                zip_buffer = BytesIO()
-                with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                    zip_file.writestr("index.html", html_code)
-                    zip_file.writestr("styles.css", css_code)
-                    zip_file.writestr("scripts.js", js_code)
-                zip_buffer.seek(0)
+                    zip_buffer = BytesIO()
+                    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                        zip_file.writestr("index.html", html_code)
+                        zip_file.writestr("styles.css", css_code)
+                        zip_file.writestr("scripts.js", js_code)
+                    zip_buffer.seek(0)
 
-                st.download_button(
-                    label="Download Website Files (ZIP)",
-                    data=zip_buffer,
-                    file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
-                    mime="application/zip"
-                )
+                    st.download_button(
+                        label="Download Website Files (ZIP)",
+                        data=zip_buffer,
+                        file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
+                        mime="application/zip"
+                    )
+
 else:
-    st.info("Enter your startup idea and press Submit to generate names.")
+    st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
