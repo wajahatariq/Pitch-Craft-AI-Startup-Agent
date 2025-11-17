@@ -41,3 +41,29 @@ h1, h2, h3 {
     color: #2980b9;
     border-bottom: 2px solid #2980b9;
 }
+
+/* Style radio buttons container */
+.stRadio > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 400px;
+    margin-bottom: 15px;
+}
+
+/* Style each radio label */
+.stRadio label {
+    font-weight: 600;
+    color: #34495e;
+    cursor: pointer;
+}
+
+/* Style text input */
+.stTextInput > div > input {
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    max-width: 400px;
+    margin-bottom: 15px;
+}
+
