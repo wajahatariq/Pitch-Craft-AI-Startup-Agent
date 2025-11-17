@@ -33,6 +33,25 @@ Enter your startup idea, select tone, and toggle which assets to generate.
 """
 )
 
+def create_pitch_pdf(pitch_text, startup_name):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='Justify', alignment=4, fontSize=12, leading=16))  # 4 = TA_JUSTIFY
+
+    flowables = []
+    flowables.append(Paragraph(f"{startup_name} - Elevator Pitch", styles['Title']))
+    flowables.append(Spacer(1, 12))
+
+    for para in pitch_text.split('\n\n'):
+        flowables.append(Paragraph(para.strip(), styles['Justify']))
+        flowables.append(Spacer(1, 12))
+
+    doc.build(flowables)
+    buffer.seek(0)
+    return buffer
+
 # --- Pollinations image generation for logo preview ---
 def generate_pollinations_image(prompt: str) -> str:
     from urllib.parse import quote_plus
@@ -433,7 +452,18 @@ if st.session_state['submitted']:
 
             if generate_pitch:
                 with tabs[1]:
-                    st.markdown(f"### Elevator Pitch\n{result.get('pitch','')}")
+                    pitch_text = result.get('pitch', '')
+                    st.markdown(f"### Elevator Pitch\n{pitch_text}")
+            
+                    if pitch_text:
+                        pdf_buffer = create_pitch_pdf(pitch_text, st.session_state['finalized_name'])
+                        st.download_button(
+                            label="Download Pitch as PDF",
+                            data=pdf_buffer,
+                            file_name=f"{st.session_state['finalized_name'].replace(' ', '_')}_pitch.pdf",
+                            mime="application/pdf"
+                        )
+
 
             if generate_audience:
                 with tabs[2]:
@@ -533,6 +563,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
