@@ -90,17 +90,19 @@ def generate_stability_image(prompt: str) -> Image.Image | None:
 
 # Outside the function, where you want to generate and show the logo:
 
-logo_prompt = (
-    f"Create a creative, iconic logo concept for the startup named '{st.session_state['finalized_name']}'. "
-    f"The logo should be bold, memorable, and visually represent the core values of the startup. "
-    f"Use the brand's suggested color palette with primary and secondary colors. "
-    f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
-    f"The design should stand out and be suitable for various media, including digital and print."
-)
+if st.session_state.get('finalized_name'):
+    if 'logo_image' not in st.session_state:
+        logo_prompt = (
+            f"Create a creative, iconic logo concept for the startup named '{st.session_state['finalized_name']}'. "
+            f"The logo should be bold, memorable, and visually represent the core values of the startup. "
+            f"Use the brand's suggested color palette with primary and secondary colors. "
+            f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
+            f"The design should stand out and be suitable for various media, including digital and print."
+        )
+        st.session_state['logo_image'] = generate_stability_image(logo_prompt)
+    if st.session_state['logo_image']:
+        st.image(st.session_state['logo_image'], caption="Logo Preview (AI-generated)", use_column_width=True)
 
-logo_image = generate_stability_image(logo_prompt)
-if logo_image:
-    st.image(logo_image, caption="Logo Preview (AI-generated)", use_column_width=True)
 
 
 # --- Domain availability check ---
@@ -656,6 +658,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
