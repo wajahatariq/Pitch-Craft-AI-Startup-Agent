@@ -71,7 +71,7 @@ def generate_stability_image(prompt: str) -> Image.Image | None:
         "output_format": "png",
         "cfg_scale": 7,
         "aspect_ratio": "1:1",
-        "model": "sd3.5-large"
+        "model": "sd3.5-flash"
     }
 
     # dummy field for multipart/form-data
@@ -652,6 +652,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
