@@ -59,8 +59,9 @@ Startup Idea:
 def name_agent(summary):
     prompt = f"""
 Generate exactly 3 unique startup names as a numbered list ONLY.  
-Do NOT include any explanations, descriptions, or pronunciation guides.
-Avoid generic words like "AI", "Tech".
+The names should be creative but easy to understand and remember.  
+They must clearly relate to farming, agriculture, or helping farmers.  
+Avoid generic words like "AI", "Tech" and avoid complex or hard-to-pronounce names.  
 Names only.
 """
     return run_completion(prompt)
@@ -398,3 +399,4 @@ if idea.strip():
 
 else:
     st.info("Please enter your startup idea to generate names.")
+
