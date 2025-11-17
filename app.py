@@ -107,7 +107,9 @@ def run_completion(prompt: str):
 # --- Agents ---
 def idea_agent(idea):
     prompt = f"""
-You are a seasoned startup strategist. Analyze this startup idea carefully.
+You are a seasoned startup strategist.
+
+Analyze this startup idea carefully.
 
 Provide a concise summary (2-3 sentences) that clearly identifies:
 - The main problem the startup addresses
@@ -117,59 +119,70 @@ Make the summary compelling and insightful.
 
 Startup Idea:
 {idea}
+
+Output only the summary text without any additional explanation.
 """
     return run_completion(prompt)
 
 def name_agent(idea):
     prompt = f"""
-Generate exactly 3 unique startup names as a numbered list ONLY.  
-Do NOT include any explanations, descriptions, or pronunciation guides.  
-Avoid generic words like "AI" and "Tech". The names should be easy to pronounce and SEO Friendly
-Names only.  
+Generate exactly 3 unique startup names as a numbered list ONLY.
+
+Do NOT include any explanations, descriptions, or pronunciation guides.
+
+Avoid generic words like "AI" and "Tech". The names should be easy to pronounce and SEO Friendly.
 
 Startup idea:
 {idea}
+
+Output only the names as a numbered list.
 """
     return run_completion(prompt)
 
-def tagline_agent(name, tone):
+def tagline_agent(name, idea, tone):
     prompt = f"""
 You are an expert copywriter.
 
-Create a catchy and memorable tagline for this startup name.
+Create a catchy and memorable tagline for the startup named "{name}".
 
-Requirements:
-- Reflect the startup's core value and vision
-- Use the tone: {tone} (e.g., Formal, Casual, Fun, Investor)
-- Keep it short (under 10 words)
-- Output only the tagline text (no explanations)
+The startup idea is:
+{idea}
 
-Startup Name:
-{name}
+Use the tone: {tone} (e.g., Formal, Casual, Fun, Investor).
+
+Keep it short (under 10 words).
+
+Output only the tagline text without any explanations or extra text.
 """
     return run_completion(prompt)
 
-def pitch_agent(summary, tone):
+def pitch_agent(name, idea, tone):
     prompt = f"""
 You are a skilled marketer.
 
-Write a compelling **two-paragraph elevator pitch** for this startup.
+Write a compelling two-paragraph elevator pitch for the startup named "{name}".
 
 Include:
 - A clear statement of the problem and its impact
 - A description of the solution and unique value proposition
-- Use the tone: {tone}
 
-Startup Summary:
-{summary}
+The startup idea is:
+{idea}
+
+Use the tone: {tone}.
+
+Output only the pitch text without any explanations or extra text.
 """
     return run_completion(prompt)
 
-def audience_agent(summary):
+def audience_agent(name, idea):
     prompt = f"""
 You are a market analyst.
 
-Define the target audience and their pain points for this startup.
+Define the target audience and their pain points for the startup named "{name}".
+
+The startup idea is:
+{idea}
 
 Format your answer as bullet points grouped under:
 - Primary Target Audience
@@ -178,32 +191,37 @@ Format your answer as bullet points grouped under:
 
 Use clear and concise language.
 
-Startup Summary:
-{summary}
+Output only the bullet points without explanations or additional text.
 """
     return run_completion(prompt)
 
-def brand_agent(name, tone):
+def brand_agent(name, idea, tone):
     prompt = f"""
 You are a branding expert.
 
-Suggest a professional color palette (with hex codes) and a simple but effective logo concept idea for this startup.
+Suggest a professional color palette (with hex codes) and a simple but effective logo concept idea for the startup named "{name}".
 
-Consider the startup name: {name} and the tone: {tone}.
+The startup idea is:
+{idea}
+
+Consider the tone: {tone}.
 
 Describe:
 - Primary and secondary colors
 - Logo style and symbolism
 
-Output your response in clear paragraphs.
+Output only the paragraphs describing the color palette and logo concept without explanations or extra text.
 """
     return run_completion(prompt)
 
-def website_agent(name, tone):
+def website_agent(name, idea, tone):
     prompt = f"""
 You are a professional front-end web developer and UI/UX designer.
 
-Generate a **modern, fully responsive, visually appealing single-page website** for the startup named "{name}".
+Generate a modern, fully responsive, visually appealing single-page website for the startup named "{name}".
+
+The startup idea is:
+{idea}
 
 Requirements:
 - Provide three separate code blocks for HTML, CSS, and JavaScript.
@@ -248,33 +266,41 @@ Requirements:
 - Ensure the website is accessible, mobile-friendly, and visually balanced.
 - Use only vanilla CSS and JavaScript (no external CSS frameworks or libraries).
 
-Output your response in **three separate labeled code blocks**:
+Output your response in three separate labeled code blocks:
 
 1) HTML code  
 2) CSS code  
 3) JavaScript code  
 
-Do NOT include explanations or extra text, only code blocks.
+Do NOT include explanations or any text outside the code blocks.
 """
     return run_completion(prompt)
 
-def social_media_agent(name, tone):
+def social_media_agent(name, idea, tone):
     prompt = f"""
 You are a social media strategist.
 
-Create a list of 5 creative social media post ideas for the startup "{name}" using a {tone} tone.
+Create a list of 5 creative social media post ideas for the startup named "{name}".
+
+The startup idea is:
+{idea}
+
+Use a {tone} tone.
 
 Each idea should be short, engaging, and suitable for platforms like Twitter or Instagram.
 
-Output as a numbered list without explanations.
+Output only a numbered list without explanations or additional text.
 """
     return run_completion(prompt)
 
-def competitor_analysis_agent(summary):
+def competitor_analysis_agent(name, idea):
     prompt = f"""
 You are a business analyst.
 
-Provide a brief competitor analysis for the startup idea summarized below.
+Provide a brief competitor analysis for the startup named "{name}".
+
+The startup idea is:
+{idea}
 
 Include:
 - Key competitors
@@ -283,16 +309,18 @@ Include:
 
 Write in clear, concise paragraphs.
 
-Startup Summary:
-{summary}
+Output only the analysis text without explanations or extra text.
 """
     return run_completion(prompt)
 
-def financials_agent(name):
+def financials_agent(name, idea):
     prompt = f"""
 You are a financial advisor.
 
-Create a simple 3-year financial projection outline for the startup "{name}".
+Create a simple 3-year financial projection outline for the startup named "{name}".
+
+The startup idea is:
+{idea}
 
 Include expected:
 - Revenue streams
@@ -300,6 +328,8 @@ Include expected:
 - Profit estimates
 
 Write in bullet points, clear and concise.
+
+Output only the financial outline without explanations or extra text.
 """
     return run_completion(prompt)
 
@@ -331,21 +361,21 @@ def run_name_generation(idea):
 def run_full_generation(idea_summary, selected_name, tone, generate_flags):
     results = {}
     if generate_flags.get("tagline", False):
-        results['tagline'] = tagline_agent(selected_name, tone)
+        results['tagline'] = tagline_agent(selected_name, idea_summary, tone)
     if generate_flags.get("pitch", False):
-        results['pitch'] = pitch_agent(idea_summary, tone)
+        results['pitch'] = pitch_agent(selected_name, idea_summary, tone)
     if generate_flags.get("audience", False):
-        results['audience'] = audience_agent(idea_summary)
+        results['audience'] = audience_agent(selected_name, idea_summary)
     if generate_flags.get("brand", False):
-        results['brand'] = brand_agent(selected_name, tone)
+        results['brand'] = brand_agent(selected_name, idea_summary, tone)
     if generate_flags.get("website", False):
-        results['website'] = website_agent(selected_name, tone)
+        results['website'] = website_agent(selected_name, idea_summary, tone)
     if generate_flags.get("social_media", False):
-        results['social_media'] = social_media_agent(selected_name, tone)
+        results['social_media'] = social_media_agent(selected_name, idea_summary, tone)
     if generate_flags.get("competitor", False):
-        results['competitor'] = competitor_analysis_agent(idea_summary)
+        results['competitor'] = competitor_analysis_agent(selected_name, idea_summary)
     if generate_flags.get("financials", False):
-        results['financials'] = financials_agent(selected_name)
+        results['financials'] = financials_agent(selected_name, idea_summary)
     results.update(report_agent(
         selected_name,
         results.get('tagline', ''),
@@ -413,7 +443,6 @@ if st.session_state['submitted']:
         
         custom_name = st.text_input("Or enter your own startup name (optional)")
 
-
         final_name = custom_name.strip() if custom_name.strip() else selected_name
         
         if final_name and len(final_name) > 0:
@@ -426,7 +455,6 @@ if st.session_state['submitted']:
             domain_to_check = None
             availability = None
 
-
         if st.button("Finalize Name"):
             st.session_state['finalized_name'] = final_name
             st.rerun()
@@ -434,12 +462,12 @@ if st.session_state['submitted']:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
         logo_prompt = (
-    f"Create a creative, iconic logo concept for the startup named '{st.session_state['finalized_name']}'. "
-    f"The logo should be bold, memorable, and visually represent the core values of the startup. "
-    f"Use the brand's suggested color palette with primary and secondary colors. "
-    f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
-    f"The design should stand out and be suitable for various media, including digital and print."
-)
+            f"Create a creative, iconic logo concept for the startup named '{st.session_state['finalized_name']}'. "
+            f"The logo should be bold, memorable, and visually represent the core values of the startup. "
+            f"Use the brand's suggested color palette with primary and secondary colors. "
+            f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
+            f"The design should stand out and be suitable for various media, including digital and print."
+        )
 
         logo_url = generate_pollinations_image(logo_prompt)
         st.image(logo_url, caption="Logo Preview (AI-generated)", use_column_width=True)
@@ -466,16 +494,13 @@ if st.session_state['submitted']:
                 "financials": generate_financials,
             }
             with st.spinner("Generating your startup assets..."):
-                # Regenerate idea summary with finalized name to align AI outputs (optional but recommended)
-                updated_idea_summary = idea_agent(st.session_state['finalized_name'])
-        
+                # Use existing idea summary (don't re-run idea_agent with name only)
                 result = run_full_generation(
-                    updated_idea_summary,
+                    idea_summary,
                     st.session_state['finalized_name'],
                     tone,
                     generate_flags
                 )
-
 
             st.success("Generation Complete!")
 
@@ -598,21 +623,3 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
