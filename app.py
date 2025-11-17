@@ -363,12 +363,17 @@ if st.session_state['submitted']:
         custom_name = st.text_input("Or enter your own startup name (optional)")
 
         final_name = custom_name.strip() if custom_name.strip() else selected_name
+        
+        if final_name and len(final_name) > 0:
+            domain_to_check = final_name.replace(" ", "") + ".com"
+            raw_availability = check_domain_availability(domain_to_check)
+            availability = map_domain_status(raw_availability)
+            st.markdown(f"**Domain check for `{domain_to_check}`:** **{availability}**")
+        else:
+            st.warning("Please select or enter a valid startup name.")
+            domain_to_check = None
+            availability = None
 
-        domain_to_check = final_name.replace(" ", "") + ".com"
-        raw_availability = check_domain_availability(domain_to_check)
-        availability = map_domain_status(raw_availability)
-
-        st.markdown(f"**Domain check for `{domain_to_check}`:** **{availability}**")
 
         if st.button("Finalize Name"):
             st.session_state['finalized_name'] = final_name
@@ -500,4 +505,5 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
