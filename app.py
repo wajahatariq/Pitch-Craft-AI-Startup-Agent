@@ -299,7 +299,7 @@ if idea.strip():
         selected_name = st.selectbox("Select a startup name", name_options)
         if st.button("Finalize Name"):
             st.session_state['finalized_name'] = selected_name
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
@@ -399,4 +399,5 @@ if idea.strip():
 
 else:
     st.info("Please enter your startup idea to generate names.")
+
 
