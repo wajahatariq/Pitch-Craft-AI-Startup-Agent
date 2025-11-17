@@ -101,12 +101,14 @@ Startup Idea:
 """
     return run_completion(prompt)
 
-def name_agent(idea):
+def name_agent(idea, tone):
     prompt = f"""
 Generate exactly 3 unique startup names as a numbered list ONLY.  
 Do NOT include any explanations, descriptions, or pronunciation guides.  
-Avoid generic words like "AI", "Tech" and complex or hard-to-pronounce names. 
-Names only.
+Avoid generic words like "AI" and "Tech".  
+Names only.  
+
+Use a {tone} tone suitable for the startup idea below.
 
 Startup idea:
 {idea}
@@ -533,6 +535,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
