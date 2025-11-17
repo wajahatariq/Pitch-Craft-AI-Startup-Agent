@@ -390,7 +390,14 @@ if st.session_state['submitted']:
     else:
         st.markdown(f"**Finalized Startup Name:** {st.session_state['finalized_name']}")
 
-        logo_prompt = f"Logo concept for startup named '{st.session_state['finalized_name']}', tone: {tone.lower()}, simple, professional, clean design"
+        logo_prompt = (
+    f"Create a creative, iconic logo concept for the startup named '{st.session_state['finalized_name']}'. "
+    f"The logo should be bold, memorable, and visually represent the core values of the startup. "
+    f"Use the brand's suggested color palette with primary and secondary colors. "
+    f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
+    f"The design should stand out and be suitable for various media, including digital and print."
+)
+
         logo_url = generate_pollinations_image(logo_prompt)
         st.image(logo_url, caption="Logo Preview (AI-generated)", use_column_width=True)
 
@@ -465,6 +472,20 @@ if st.session_state['submitted']:
                     css_code = css_match.group(1).strip()
                 if js_match:
                     js_code = js_match.group(1).strip()
+                    smooth_scroll_js = """
+                    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                      anchor.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetID = this.getAttribute('href').substring(1);
+                        const targetElement = document.getElementById(targetID);
+                        if (targetElement) {
+                          targetElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      });
+                    });
+                    """
+                    
+                    js_code += smooth_scroll_js
 
                 if not (html_code and css_code and js_code):
                     parts = re.split(r"\d\)\s*[Hh][Tt][Mm][Ll]|CSS|JavaScript|JS", website_code)
@@ -514,6 +535,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
