@@ -504,4 +504,18 @@ if idea.strip():
                     label="Download Website Files (ZIP)",
                     data=zip_buffer,
                     file_name=f"{st.session_state['finalized_name'].replace(' ','_')}_website.zip",
-                    mime="application/
+                    mime="application/zip"
+                )
+
+            # PDF generation if pitch + brand + tagline present (minimum)
+            if generate_pitch and generate_brand and generate_tagline:
+                pdf_bytes = create_pitch_pdf(result)
+                st.download_button(
+                    label="Download Pitch as PDF",
+                    data=pdf_bytes,
+                    file_name=f"{st.session_state['finalized_name'].replace(' ', '_')}_pitch.pdf",
+                    mime="application/pdf",
+                )
+
+else:
+    st.info("Please enter your startup idea to generate names.")
