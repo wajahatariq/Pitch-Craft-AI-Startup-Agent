@@ -201,36 +201,41 @@ Output your response in clear paragraphs.
 
 def website_agent(name, tone):
     prompt = f"""
-You are a professional web developer.
+You are a professional front-end web developer and UI/UX designer.
 
-Generate a modern, fully responsive, visually appealing **single-page website** for the startup named "{name}".
+Generate a modern, visually appealing, fully responsive single-page website for the startup named "{name}".
 
 Requirements:
-- Use semantic, well-structured HTML5.
-- Include the following sections:
-  1. Hero section with startup name, tagline, and a call-to-action button.
-  2. About section describing the problem the startup solves.
-  3. Features or solution section with cards or icons.
-  4. Testimonials or social proof section (3 example testimonials).
-  5. Contact section with a fully functional contact form (name, email, message) including input validation.
-- Use a clean, consistent color scheme that fits the tone: {tone}.
-- Include smooth scrolling navigation with a fixed header menu.
-- Use responsive CSS that works well on mobile and desktop.
-- Add subtle animations and transitions (e.g., fade-in on scroll, button hover effects).
-- Provide a sticky navigation bar with links to sections.
-- Ensure accessibility best practices (aria labels, alt text, proper heading hierarchy).
-- Include SEO-friendly meta tags and page title.
-- Use plain CSS or a lightweight framework (like Flexbox and Grid) for layout.
-- Add JavaScript only for form validation and smooth scrolling navigation.
-- Structure your output clearly in three labeled code blocks: HTML, CSS, and JavaScript.
+- Use Tailwind CSS via CDN for all styling (no custom CSS files).
+- Use Google Fonts: 'Poppins' for headings and 'Roboto' for body text, loaded in the HTML head.
+- Create a harmonious color palette matching a {tone.lower()} tone using Tailwind utility classes.
+- Implement a sticky header with navigation links that changes background color smoothly on scroll.
+- Include smooth fade-in animations on scroll and subtle hover effects on buttons and links using Tailwind classes and minimal JavaScript.
+- Use semantic HTML5 elements with proper aria labels and alt text for accessibility.
+- SEO-friendly meta tags including page title and description reflecting the startup name and tone.
+- The page must contain these sections:
 
-Output your response in three separate clearly labeled code blocks:
+  1. Hero section with startup name, tagline, and a prominent call-to-action button.
+  2. About section describing the problem the startup solves.
+  3. Features section with 3 feature cards including icons (can use emojis or inline SVG).
+  4. Testimonials section with 3 testimonials (use placeholder images).
+  5. Contact section with a form (name, email, message) with client-side validation.
+
+- Use minimal custom JavaScript only for:
+  - Smooth scrolling navigation
+  - Basic form validation with inline error messages
+
+Output your response in **two separate labeled code blocks**:
 
 1) HTML code  
-2) CSS code  
-3) JavaScript code
+2) JavaScript code
+
+Do NOT include custom CSS code block because Tailwind CSS will handle all styling.
+
+Do NOT include any explanations, only provide the code blocks.
 """
     return run_completion(prompt)
+
 
 def social_media_agent(name, tone):
     prompt = f"""
@@ -563,6 +568,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
