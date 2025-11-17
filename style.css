@@ -22,13 +22,14 @@ h1, h2, h3 {
     background-color: #45a049;
 }
 
-.stTextInput>div>input, .stTextArea>div>textarea, .stSelectbox>div>div>div>div {
+/* Removed selectbox styling here */
+.stTextInput > div > input, .stTextArea > div > textarea {
     border-radius: 5px;
     border: 1px solid #ccc;
     padding: 8px;
 }
 
-.stCheckbox>div>div>input {
+.stCheckbox > div > div > input {
     margin-right: 8px;
 }
 
@@ -66,4 +67,3 @@ h1, h2, h3 {
     max-width: 400px;
     margin-bottom: 15px;
 }
-
