@@ -55,7 +55,7 @@ def create_pitch_pdf(pitch_text, startup_name):
 
 # --- Pollinations image generation for logo preview ---
 def generate_stability_image(prompt: str) -> Image.Image | None:
-    api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3.5-flash"
+    api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
     api_key = st.secrets["STABILITY_API_KEY"]
 
     headers = {
@@ -71,7 +71,7 @@ def generate_stability_image(prompt: str) -> Image.Image | None:
         "output_format": "png",
         "cfg_scale": 7,
         "aspect_ratio": "1:1",
-        "model": "sd3.5-flash"
+        "model": "sd3"
     }
 
     # dummy field for multipart/form-data
@@ -652,6 +652,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
