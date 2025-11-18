@@ -228,11 +228,13 @@ Requirements:
   - Smooth fade-in animations on scroll for sections
   - Buttons with rounded corners, subtle shadows, hover and focus states
   - Consistent spacing, readable font sizes, and a clear visual hierarchy
-  - Should have centralized justified layout                                              
+  - Should have centralized justified layout    
 - JavaScript should handle:
   - Smooth scrolling navigation for internal links
   - Simple client-side form validation with inline error messages for the contact form (validate required fields and email format)
   - Add subtle animations or transitions triggered on scroll
+- The name of CSS file should be style.css in the HTML code
+- The name of CSS file should be script.js in the HTML code
 - The page structure must include these sections:
 
   1. Hero section:
@@ -260,7 +262,7 @@ Requirements:
 - Include SEO-friendly meta tags (title, description) reflecting the startup name and tone.
 - Ensure the website is accessible, mobile-friendly, and visually balanced.
 - Use only vanilla CSS and JavaScript (no external CSS frameworks or libraries).
-
+- Website should be detailed and completed and outstanding with animations and all.
 Output your response in three separate labeled code blocks:
 
 1) HTML code  
@@ -607,6 +609,7 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
 
