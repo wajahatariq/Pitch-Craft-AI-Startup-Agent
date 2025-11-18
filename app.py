@@ -53,57 +53,6 @@ def create_pitch_pdf(pitch_text, startup_name):
     buffer.seek(0)
     return buffer
 
-# --- Pollinations image generation for logo preview ---
-def generate_stability_image(prompt: str) -> Image.Image | None:
-    api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
-    api_key = st.secrets["STABILITY_API_KEY"]
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "image/*",
-        "stability-client-id": "pitchcraft-app",
-        "stability-client-user-id": "user-unique-id",
-        "stability-client-version": "1.0",
-    }
-
-    data = {
-        "prompt": prompt,
-        "model": "sd3.5-large",
-        "mode": "text-to-image",
-        "output_format": "png",
-        "aspect_ratio": "1:1",
-        "seed": 0,
-        "negative_prompt": "",
-    }
-
-    files = {"none": ""}
-
-    try:
-        response = requests.post(api_url, headers=headers, data=data, files=files)
-        response.raise_for_status()
-        image = Image.open(BytesIO(response.content))
-        return image
-    except Exception as e:
-        st.error(f"Failed to generate logo: {e}")
-        return None
-
-
-# Outside the function, where you want to generate and show the logo:
-
-if st.session_state.get('finalized_name'):
-    if 'logo_image' not in st.session_state:
-        logo_prompt = (
-            f"Create a creative, iconic logo concept for the startup named '{st.session_state['finalized_name']}'. "
-            f"The logo should be bold, memorable, and visually represent the core values of the startup. "
-            f"Use the brand's suggested color palette with primary and secondary colors. "
-            f"Include symbolic elements related to the startup's mission, avoiding minimal or sleek styles. "
-            f"The design should stand out and be suitable for various media, including digital and print."
-        )
-        st.session_state['logo_image'] = generate_stability_image(logo_prompt)
-    if st.session_state['logo_image']:
-        st.image(st.session_state['logo_image'], caption="Logo Preview (AI-generated)", use_column_width=True)
-
-
 
 # --- Domain availability check ---
 def check_domain_availability(domain: str) -> str:
@@ -658,5 +607,6 @@ if st.session_state['submitted']:
 
 else:
     st.info("Enter your startup idea and tone, then press Submit to generate startup names.")
+
 
 
